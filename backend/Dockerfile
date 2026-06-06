@@ -6,7 +6,7 @@ COPY pyproject.toml  uv.lock README.md .
 
 RUN uv sync --no-cache --locked --no-dev --no-install-project
 
-COPY . .
+COPY . ./
 
 RUN uv sync --no-cache --locked --no-dev
 
