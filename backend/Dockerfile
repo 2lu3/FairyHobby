@@ -10,4 +10,4 @@ COPY . ./
 
 RUN uv sync --no-cache --locked --no-dev
 
-CMD ["fastapi", "run", "src/backend/main.py", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uv", "run", "fastapi", "run", "src/backend/main.py", "--host", "0.0.0.0", "--port", "8080"]
