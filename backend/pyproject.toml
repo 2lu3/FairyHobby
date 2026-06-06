@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "2lu3", email = "hi2lu3@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.136.3",
     "sqlmodel>=0.0.38",
