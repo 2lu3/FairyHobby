@@ -2,7 +2,7 @@ FROM ghcr.io/astral-sh/uv:python3.12-trixie
 
 WORKDIR /code
 
-COPY pyproject.toml  uv.lock README.md .
+COPY pyproject.toml  uv.lock README.md ./
 
 RUN uv sync --no-cache --locked --no-dev --no-install-project
 
