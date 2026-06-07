@@ -1,4 +1,5 @@
 FROM ghcr.io/astral-sh/uv:python3.12-trixie
+EXPOSE 8080
 
 WORKDIR /code
 
