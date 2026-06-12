@@ -20,3 +20,10 @@ def get_current_user(
     if not user:
         raise UserNotFoundError(f"User with firebase uid {firebase_uid} not found")
     return user
+
+
+def valid_user_id(user_id: UUID, session: Session = Depends(get_session)) -> User:
+    user = session.get(User, user_id)
+    if not user:
+        raise UserNotFoundError(f"User with id {user_id} not found")
+    return user

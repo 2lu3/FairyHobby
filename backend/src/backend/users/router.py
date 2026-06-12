@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 from uuid import UUID
 
@@ -14,11 +14,11 @@ from backend.users.schemas import (
 from backend.users.service import (
     create_user as create_user_service,
     # asで別名にしなくても衝突しないが、service由来である他の関数と合わせた方が読みやすいため
-    read_user as read_user_service, 
+    read_user as read_user_service,
     update_user as update_user_service,
     delete_user as delete_user_service,
 )
-from backend.users.dependencies import get_current_user
+from backend.users.dependencies import get_current_user, valid_user_id
 from backend.users.models import User
 
 router = APIRouter(
@@ -28,7 +28,7 @@ router = APIRouter(
 
 
 @router.post(
-    "/create",
+    "/",
     response_model=UserReadResponse,
     status_code=status.HTTP_201_CREATED,
     description="Create a new user",
@@ -52,7 +52,6 @@ def create_user(
 ):
     user = create_user_service(in_user, firebase_uid, session)
     return user
-    
 
 
 @router.get(
@@ -87,9 +86,14 @@ def get_user_me(
         },
     },
 )
-def get_user(user_id: UUID, session: Session = Depends(get_session), _: User = Depends(get_current_user)):
-    user = read_user_service(user_id,  session)
+def get_user(
+    user_id: UUID = Depends(valid_user_id),
+    session: Session = Depends(get_session),
+    _: User = Depends(get_current_user),
+):
+    user = read_user_service(user_id, session)
     return user
+
 
 @router.patch(
     "/{user_id}",
@@ -99,14 +103,23 @@ def get_user(user_id: UUID, session: Session = Depends(get_session), _: User = D
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Unauthorized",
         },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Forbidden",
+        },
         status.HTTP_404_NOT_FOUND: {
             "description": "Not Found",
         },
     },
 )
-def update_user(user_id: UUID,in_user: UserUpdateRequest, session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
-    user = update_user_service(in_user, current_user, session)
+def update_user(
+    in_user: UserUpdateRequest,
+    user_id: UUID = Depends(valid_user_id),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    user = update_user_service(user_id, in_user, current_user, session)
     return user
+
 
 @router.delete(
     "/{user_id}",
@@ -121,5 +134,9 @@ def update_user(user_id: UUID,in_user: UserUpdateRequest, session: Session = Dep
         },
     },
 )
-def delete_user(user_id: UUID, session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
+def delete_user(
+    user_id: UUID = Depends(valid_user_id),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     return delete_user_service(user_id, current_user, session)

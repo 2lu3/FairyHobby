@@ -13,7 +13,8 @@ def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
         yield session
 
+
 class Base(SQLModel):
-    id: UUID = Field(default=uuid4(), primary_key=True)
-    created_at: datetime = Field(default=datetime.now())
-    updated_at: datetime = Field(default=datetime.now())
+    id: UUID = Field(default=uuid4, primary_key=True)
+    created_at: datetime = Field(default=datetime.now)
+    updated_at: datetime = Field(default=datetime.now)
