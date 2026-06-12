@@ -1,5 +1,19 @@
-from sqlmodel import create_engine, SQLModel
+from collections.abc import Generator
+from datetime import datetime
+from uuid import UUID, uuid4
+
+from sqlmodel import Field, Session, SQLModel, create_engine
+
 from backend.config import settings
 
 engine = create_engine(settings.SQLMODEL_DATABASE_URL)
-SQLModel.metadata.create_all(engine)
+
+
+def get_session() -> Generator[Session, None, None]:
+    with Session(engine) as session:
+        yield session
+
+class Base(SQLModel):
+    id: UUID = Field(default=uuid4(), primary_key=True)
+    created_at: datetime = Field(default=datetime.now())
+    updated_at: datetime = Field(default=datetime.now())

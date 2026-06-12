@@ -1,0 +1,2 @@
+class TokenVerificationError(Exception):
+    pass

@@ -1,5 +1,5 @@
 from time import struct_time
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
 
 class Settings(BaseSettings):
@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+
+    GOOGLE_APPLICATION_CREDENTIALS: str
 
     @computed_field
     @property
