@@ -1,5 +1,6 @@
 from fastapi import Depends
 from sqlmodel import Session, select
+from uuid import UUID
 
 from backend.auth.dependencies import get_firebase_uid
 from backend.database import get_session
@@ -22,8 +23,13 @@ def get_current_user(
     return user
 
 
-def valid_user_id(user_id: UUID, session: Session = Depends(get_session)) -> User:
+def valid_user_id(user_id: UUID, session: Session = Depends(get_session)) -> UUID:
+    """user_id が実在することを検証し、検証済みの UUID を返す。
+
+    ルータ側は `user_id: UUID = Depends(valid_user_id)` として UUID を受け取り、
+    各サービス（read/update/delete）に UUID として渡す。
+    """
     user = session.get(User, user_id)
     if not user:
         raise UserNotFoundError(f"User with id {user_id} not found")
-    return user
+    return user.id

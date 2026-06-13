@@ -3,7 +3,7 @@ from pydantic import EmailStr
 from backend.database import Base
 
 
-class User(Base):
+class User(Base, table=True):
     __tablename__ = "users"
 
     firebase_uid: str = Field(unique=True)

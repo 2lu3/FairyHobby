@@ -1,26 +1,47 @@
+import os
 from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+from sqlmodel import SQLModel
+from backend.users.models import User  # noqa: F401
+from backend.models import Base  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+
+def _get_database_url() -> str:
+    """マイグレーション対象の DB URL を解決する。
+
+    優先順位:
+      1. 環境変数 DATABASE_URL (テスト用 testcontainer や CI で注入する)
+      2. アプリ設定 (backend.config.settings)
+
+    alembic.ini の sqlalchemy.url はプレースホルダのままにしておき、
+    URL は常にここで上書きする。
+    """
+    url = os.getenv("DATABASE_URL")
+    if url:
+        return url
+    from backend.config import settings
+
+    return settings.SQLMODEL_DATABASE_URL
+
+
+config.set_main_option("sqlalchemy.url", _get_database_url())
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-from backend.models import *
-from backend.users.models import *
-from sqlmodel import SQLModel
 
 target_metadata = SQLModel.metadata
 

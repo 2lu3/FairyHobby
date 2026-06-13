@@ -15,6 +15,6 @@ def get_session() -> Generator[Session, None, None]:
 
 
 class Base(SQLModel):
-    id: UUID = Field(default=uuid4, primary_key=True)
-    created_at: datetime = Field(default=datetime.now)
-    updated_at: datetime = Field(default=datetime.now)
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)

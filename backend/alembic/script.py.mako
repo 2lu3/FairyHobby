@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+import sqlmodel  # SQLModel が生成する AutoString 等の型解決のため
 ${imports if imports else ""}
 
 # revision identifiers, used by Alembic.
