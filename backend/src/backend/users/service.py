@@ -6,28 +6,17 @@ from backend.auth.service import get_email_from_firebase
 from backend.users.models import User
 from backend.users.schemas import (
     UserCreateRequest,
-    UserDeleteResponse,
-    UserReadResponse,
     UserUpdateRequest,
-    UserMeReadResponse,
 )
-from backend.users.exceptions import (
-    UserAlreadyExistsError,
-    PermissionDeniedError,
-    UserNotFoundError,
-)
+from backend.exceptions import NotFoundError, ConflictError, PermissionDeniedError
 
 
-def create_user(
-    in_user: UserCreateRequest, firebase_uid: str, session: Session
-) -> UserMeReadResponse:
+def create(in_user: UserCreateRequest, firebase_uid: str, session: Session) -> User:
     existing_user = session.exec(
         select(User).where(User.firebase_uid == firebase_uid)
     ).first()
     if existing_user:
-        raise UserAlreadyExistsError(
-            f"User with firebase uid {firebase_uid} already exists"
-        )
+        raise ConflictError()
 
     user = User(
         firebase_uid=firebase_uid,
@@ -42,31 +31,36 @@ def create_user(
     return user
 
 
-def read_user(user_id: UUID, session: Session) -> UserReadResponse:
-    """ログイン済みユーザーが、任意のユーザーの公開情報を取得する"""
-    # 対象ユーザーが存在するか確認する
+def get(user_id: UUID, session: Session) -> User:
     user = session.get(User, user_id)
     if not user:
-        raise UserNotFoundError(f"User with id {user_id} not found")
+        raise NotFoundError()
 
     return user
 
 
-def update_user(
+def get_all(session: Session) -> list[User]:
+    users = session.exec(select(User)).all()
+    return users
+
+
+def update(
     user_id: UUID, in_user: UserUpdateRequest, current_user: User, session: Session
-) -> UserReadResponse:
+) -> User:
     """自身もしくは他のユーザーの情報を更新する
     Raises:
-        UserNotFoundError: 対象ユーザーが存在しない
+        NotFoundError: 対象ユーザーが存在しない
         PermissionDeniedError: 非管理者が他のユーザーの情報を更新しようとした
     """
 
-    if user_id == current_user.id:
-        target_user = current_user
-    else:
-        target_user = session.get(User, user_id)
-        if not target_user:
-            raise UserNotFoundError(f"User with id {user_id} not found")
+    target_user = (
+        current_user if user_id == current_user.id else session.get(User, user_id)
+    )
+
+    if not target_user:
+        raise NotFoundError()
+    if current_user.id != target_user.id and not current_user.is_admin:
+        raise PermissionDeniedError()
 
     if in_user.display_name is not None:
         target_user.display_name = in_user.display_name
@@ -75,7 +69,7 @@ def update_user(
         if current_user.is_admin:
             target_user.is_admin = in_user.is_admin
         else:
-            raise PermissionDeniedError("You are not admin")
+            raise PermissionDeniedError()
 
     session.add(target_user)
     session.commit()
@@ -83,17 +77,16 @@ def update_user(
     return target_user
 
 
-def delete_user(user_id: UUID, current_user, session: Session) -> UserDeleteResponse:
+def delete(user_id: UUID, current_user: User, session: Session) -> User:
     if user_id == current_user.id:
         target_user = current_user
     else:
         target_user = session.get(User, user_id)
         if not target_user:
-            raise UserNotFoundError(f"User with id {user_id} not found")
+            raise NotFoundError()
         if not current_user.is_admin:
-            raise PermissionDeniedError("Only admin can delete other users")
+            raise PermissionDeniedError()
 
     session.delete(target_user)
     session.commit()
-
-    return UserDeleteResponse(id=target_user.id)
+    return target_user

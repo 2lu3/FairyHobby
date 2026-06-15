@@ -2,11 +2,15 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from backend.auth.service import init_firebase_app
 from backend.users.router import router as users_router
-from backend.auth.exception_handlers import (
-    register_exception_handlers as auth_register_exception_handlers,
-)
-from backend.users.exception_handlers import (
-    register_exception_handlers as users_register_exception_handlers,
+
+# from backend.activities.router import activities_router, hobbies_router
+from backend.exceptions import (
+    NotFoundError,
+    ConflictError,
+    PermissionDeniedError,
+    handle_not_found_error,
+    handle_conflict_error,
+    handle_permission_denied_error,
 )
 
 
@@ -19,6 +23,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(users_router)
+# app.include_router(activities_router)
 
-auth_register_exception_handlers(app)
-users_register_exception_handlers(app)
+
+app.add_exception_handler(NotFoundError, handle_not_found_error)
+app.add_exception_handler(ConflictError, handle_conflict_error)
+app.add_exception_handler(PermissionDeniedError, handle_permission_denied_error)

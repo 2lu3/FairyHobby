@@ -1,23 +1,27 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { StartModal } from "./StartModal";
 import { auth, provider } from "~/lib/firebase.client";
 
+
 export default function Login() {
+  const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-
+  
 
   const handleLoginSubmit = async () => {
     await signInWithPopup(auth, provider)
       .catch((error) => {
         setErrorMessage("ログインが中断されました");
+        return;
       });
-      const token = auth.currentUser?.getIdToken();
+      const token = await auth.currentUser?.getIdToken();
       if (!token) {
         setErrorMessage("ログインに失敗しました");
+        return;
       }
-
+      navigate("/register");
   }
 
   return (

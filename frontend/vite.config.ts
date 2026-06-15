@@ -5,6 +5,11 @@ import { fileURLToPath } from "url";
 
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter()],
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+    },
+  },
   resolve: {
     tsconfigPaths: true,
     alias: {

@@ -8,7 +8,8 @@ from firebase_admin.auth import (
     UserNotFoundError,
 )
 from firebase_admin.exceptions import FirebaseError
-from backend.auth.exceptions import TokenVerificationError
+from backend.exceptions import UnAuthorizedError
+
 
 _firebase_app: firebase_admin.App | None = None
 
@@ -28,7 +29,7 @@ def token_to_firebase_uid(token: str) -> str:
         token (str): クライアントに渡されたfirebase id token
 
     Raises:
-        TokenVerificationError:
+        UnAuthorizedError:
 
     Returns:
         str: デコードされたtoken
@@ -42,7 +43,7 @@ def token_to_firebase_uid(token: str) -> str:
         RevokedIdTokenError,
         UserDisabledError,
     ) as e:
-        raise TokenVerificationError("Failed to verify firebase id token") from e
+        raise UnAuthorizedError("Failed to verify firebase id token") from e
 
 
 def get_email_from_firebase(firebase_uid: str) -> str:
@@ -52,7 +53,7 @@ def get_email_from_firebase(firebase_uid: str) -> str:
         firebase_uid (str): firebase uid
 
     Raises:
-        TokenVerificationError:
+        UnAuthorizedError:
 
     Returns:
         str: email address
@@ -61,7 +62,7 @@ def get_email_from_firebase(firebase_uid: str) -> str:
         user = auth.get_user(firebase_uid)
         return user.email
     except (ValueError, UserNotFoundError, FirebaseError) as e:
-        raise TokenVerificationError("Failed to get email from firebase") from e
+        raise UnAuthorizedError("Failed to get email from firebase") from e
 
 
 def firebase_app() -> firebase_admin.App:

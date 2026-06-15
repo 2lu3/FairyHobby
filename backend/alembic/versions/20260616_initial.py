@@ -1,8 +1,8 @@
 """initial
 
-Revision ID: e88badcce895
+Revision ID: 4670735f9021
 Revises:
-Create Date: 2026-06-12 13:11:36.298074
+Create Date: 2026-06-16 00:14:07.364709
 
 """
 
@@ -14,7 +14,7 @@ import sqlmodel  # SQLModel が生成する AutoString 等の型解決のため
 
 
 # revision identifiers, used by Alembic.
-revision: str = "e88badcce895"
+revision: str = "4670735f9021"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
