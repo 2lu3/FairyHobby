@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import type { Route } from "./+types/route";
 import { useAuthUser } from "~/lib/useAuthUser.client";
 import { registerUser, createSession } from "~/lib/auth.server";
+import Container from "~/component/Container";
 
 
 export async function action({ request }: Route.ActionArgs) {
@@ -81,7 +82,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
     return (
         <div className="min-h-screen">
             {errorMessage && <div className="alert alert-error">{errorMessage}</div>}
-            <div className="mx-auto w-full max-w-xl px-8">
+            <Container>
                 <section className="mt-24">
                     <h1 className="text-xl">妖精からの招待状</h1>
                 </section>
@@ -105,7 +106,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
                         </button>
                     </Form>
                 </section>
-            </div>
+            </Container>
         </div>
     );
 }

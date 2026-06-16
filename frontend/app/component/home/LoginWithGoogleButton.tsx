@@ -3,7 +3,7 @@ import type { ButtonHTMLAttributes } from "react";
 type LoginWithGoogleButtonProps =
     ButtonHTMLAttributes<HTMLButtonElement>;
 
-export function LoginWithGoogleButton(
+export default function LoginWithGoogleButton(
     props: LoginWithGoogleButtonProps,
 ) {
     return (

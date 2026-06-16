@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { StartModal } from "./StartModal";
+import StartModal from "~/component/home/StartModal";
 import { auth, provider } from "~/lib/firebase.client";
+import Container from "~/component/Container";
 
 
 export default function Login() {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
+
 
   const handleLoginSubmit = async () => {
     await signInWithPopup(auth, provider)
@@ -16,17 +17,17 @@ export default function Login() {
         setErrorMessage("ログインが中断されました");
         return;
       });
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) {
-        setErrorMessage("ログインに失敗しました");
-        return;
-      }
-      navigate("/register");
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) {
+      setErrorMessage("ログインに失敗しました");
+      return;
+    }
+    navigate("/register");
   }
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto w-full max-w-xl px-8">
+      <Container>
         <section className="mt-24">
           {errorMessage && <div className="alert alert-error">{errorMessage}</div>}
           <div className="flex flex-col gap-8 items-center">
@@ -39,7 +40,7 @@ export default function Login() {
             <p>妖精から届く小さな招待状をきっかけに、まだ知らなかった世界や、思いがけない楽しみと出会えるかもしれません。</p>
           </div>
         </section>
-      </div>
+      </Container>
     </div>
   );
 }

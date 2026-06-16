@@ -1,11 +1,11 @@
-import { LoginWithGoogleButton } from "./LoginWithGoogleButton";
+import LoginWithGoogleButton from "~/component/home/LoginWithGoogleButton";
 
 
 type StartModalProps = {
     handleLoginSubmit: () => void | Promise<void>;
 };
 
-export const StartModal = ({ handleLoginSubmit }: StartModalProps) => {
+export default function StartModal({ handleLoginSubmit }: StartModalProps) {
     return (
         <div>
             <button
