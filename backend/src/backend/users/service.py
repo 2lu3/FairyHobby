@@ -1,7 +1,8 @@
 from uuid import UUID
 
 from sqlmodel import Session, select
-
+from importlib.resources import files
+from dicebear import Avatar, Style
 from backend.auth.service import get_email_from_firebase
 from backend.users.models import User
 from backend.users.schemas import (
@@ -22,8 +23,10 @@ def create(in_user: UserCreateRequest, firebase_uid: str, db_session: Session) -
         firebase_uid=firebase_uid,
         email=get_email_from_firebase(firebase_uid),
         display_name=in_user.display_name,
+        icon="",
         is_admin=False,
     )
+    user.icon = generate_icon(user.id)
 
     db_session.add(user)
     db_session.commit()
@@ -96,3 +99,14 @@ def delete(user_id: UUID, current_user: User, db_session: Session) -> User:
     db_session.delete(target_user)
     db_session.commit()
     return target_user
+
+
+def generate_icon(user_id: UUID) -> str:
+    style = Style.from_json(
+        files("dicebear_styles").joinpath("identicon.json").read_text("utf-8")
+    )
+
+    avatar = Avatar(style, {"rowProbability": 100, "seed": str(user_id)})
+
+    svg = avatar.to_string()
+    return svg

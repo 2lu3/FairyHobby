@@ -16,6 +16,7 @@ class UserReadResponse(BaseModel):
 
     id: UUID
     display_name: str
+    icon: str
     is_admin: bool
 
 
@@ -25,6 +26,7 @@ class UserMeReadResponse(BaseModel):
     id: UUID
     email: str
     display_name: str
+    icon: str
     is_admin: bool
 
 

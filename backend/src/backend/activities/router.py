@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 from fastapi import status
-
+from sqlmodel import Session, Depends
+from uuid import UUID
 from backend.database import get_db_session
-from .schemas import ActivityReadResponse
+from .schemas import ActivityReadResponse, ActivityCreateRequest
 
 activities_router = APIRouter(
     prefix="/activities",
@@ -28,6 +29,7 @@ def create_activity(
     description="Read an activity",
 )
 def read_activity(
-    activity_id: UUID = Path(..., description="The ID of the activity"),
+    activity_id: UUID,
+    session: Session = Depends(get_db_session),
 ) -> ActivityReadResponse:
     return {}

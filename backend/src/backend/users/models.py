@@ -8,4 +8,5 @@ class User(Base, table=True):
     firebase_uid: str = Field(unique=True)
     email: str = Field(unique=True)
     display_name: str
+    icon: str
     is_admin: bool

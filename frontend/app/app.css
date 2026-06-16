@@ -1,4 +1,12 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-    themes: themes: light --default, dark --prefersdark, bumblebee;
+  themes: light --default, dark --prefersdark, emerald;
+}
+
+
+@theme {
+    --text-sm: 16px;
+    --text-base: 20px;
+    --text-lg: 24px;
+    --text-xl: 28px;
 }

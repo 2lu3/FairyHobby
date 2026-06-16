@@ -34,3 +34,15 @@ def create_session(
         return CreateSessionResponse(id=user.id, needs_signup=False)
 
     return CreateSessionResponse(id=None, needs_signup=True)
+
+
+@router.delete(
+    "/session",
+    status_code=status.HTTP_200_OK,
+    description="Logout the user",
+)
+def delete_session(
+    request: Request,
+):
+    request.session.clear()
+    return
