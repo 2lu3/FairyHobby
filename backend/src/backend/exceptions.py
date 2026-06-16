@@ -1,9 +1,20 @@
-from fastapi import Request
+from fastapi import Request, status, FastAPI
 from fastapi.responses import JSONResponse
-from fastapi import status
 
 
 class UnAuthorizedError(Exception):
+    pass
+
+
+class NotFoundError(Exception):
+    pass
+
+
+class ConflictError(Exception):
+    pass
+
+
+class PermissionDeniedError(Exception):
     pass
 
 
@@ -14,19 +25,11 @@ def handle_unauthorized_error(request: Request, exc: UnAuthorizedError) -> JSONR
     )
 
 
-class NotFoundError(Exception):
-    pass
-
-
 def handle_not_found_error(request: Request, exc: NotFoundError) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={"detail": "Not found"},
     )
-
-
-class ConflictError(Exception):
-    pass
 
 
 def handle_conflict_error(request: Request, exc: ConflictError) -> JSONResponse:
@@ -36,10 +39,6 @@ def handle_conflict_error(request: Request, exc: ConflictError) -> JSONResponse:
     )
 
 
-class PermissionDeniedError(Exception):
-    pass
-
-
 def handle_permission_denied_error(
     request: Request, exc: PermissionDeniedError
 ) -> JSONResponse:
@@ -47,3 +46,10 @@ def handle_permission_denied_error(
         status_code=status.HTTP_403_FORBIDDEN,
         content={"detail": "Permission denied"},
     )
+
+
+def init_exception_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(NotFoundError, handle_not_found_error)
+    app.add_exception_handler(UnAuthorizedError, handle_unauthorized_error)
+    app.add_exception_handler(ConflictError, handle_conflict_error)
+    app.add_exception_handler(PermissionDeniedError, handle_permission_denied_error)

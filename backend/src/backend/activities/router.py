@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi import status
 
-from backend.database import get_session
+from backend.database import get_db_session
 from .schemas import ActivityReadResponse
 
 activities_router = APIRouter(
@@ -17,7 +17,7 @@ activities_router = APIRouter(
     description="Create a new activity",
 )
 def create_activity(
-    activity: ActivityCreateRequest, session: Session = Depends(get_session)
+    activity: ActivityCreateRequest, session: Session = Depends(get_db_session)
 ) -> ActivityReadResponse:
     return {}
 

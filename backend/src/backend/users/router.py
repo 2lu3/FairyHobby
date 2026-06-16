@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlmodel import Session
 from uuid import UUID
 
 from backend.auth.dependencies import get_firebase_uid
-from backend.database import get_session
+from backend.database import get_db_session
 from backend.users.schemas import (
     UserCreateRequest,
     UserMeReadResponse,
@@ -43,11 +43,13 @@ router = APIRouter(
     },
 )
 def create_user(
+    request: Request,
     in_user: UserCreateRequest,
     firebase_uid: str = Depends(get_firebase_uid),
-    session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
-    user = create(in_user, firebase_uid, session)
+    user = create(in_user, firebase_uid, db_session)
+    request.session["user_id"] = str(user.id)
     return user
 
 
@@ -62,10 +64,10 @@ def create_user(
     },
 )
 def get_users(
-    session: Session = Depends(get_session),
-    # _: User = Depends(get_current_user), TODO: 後であんコメントする
+    db_session: Session = Depends(get_db_session),
+    _: User = Depends(get_current_user),
 ):
-    users = get_all(session)
+    users = get_all(db_session)
     return users
 
 
@@ -103,10 +105,10 @@ def get_user_me(
 )
 def get_user(
     user_id: UUID,
-    session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
     _: User = Depends(get_current_user),
 ):
-    user = get(user_id, session)
+    user = get(user_id, db_session)
     return user
 
 
@@ -129,10 +131,10 @@ def get_user(
 def update_user(
     in_user: UserUpdateRequest,
     user_id: UUID,
-    session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
-    user = update(user_id, in_user, current_user, session)
+    user = update(user_id, in_user, current_user, db_session)
     return user
 
 
@@ -151,7 +153,7 @@ def update_user(
 )
 def delete_user(
     user_id: UUID,
-    session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
-    return delete(user_id, current_user, session)
+    return delete(user_id, current_user, db_session)

@@ -10,7 +10,6 @@ from firebase_admin.auth import (
 from firebase_admin.exceptions import FirebaseError
 from backend.exceptions import UnAuthorizedError
 
-
 _firebase_app: firebase_admin.App | None = None
 
 
@@ -35,7 +34,10 @@ def token_to_firebase_uid(token: str) -> str:
         str: デコードされたtoken
     """
     try:
-        return firebase_admin.auth.verify_id_token(token).get("uid")
+        firebase_uid = firebase_admin.auth.verify_id_token(token).get("uid")
+        if not isinstance(firebase_uid, str) and firebase_uid != "":
+            raise UnAuthorizedError("Invalid firebase uid")
+        return firebase_uid
     except (
         ValueError,
         InvalidIdTokenError,

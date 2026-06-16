@@ -1,18 +1,24 @@
 # auth/dependencies.py
 
-from fastapi import Depends
-from fastapi.security import HTTPBearer
-
+from fastapi import Header, Request
+from uuid import UUID
 from backend.auth.service import token_to_firebase_uid
-
-security = HTTPBearer()
+from backend.exceptions import UnAuthorizedError
 
 
 def get_firebase_uid(
-    credentials=Depends(security),
+    authorization: str = Header(),
 ) -> str:
-    """firebase id tokenを検証し、firebase uidを返す
-    Raises:
-        TokenVerificationError:
-    """
-    return token_to_firebase_uid(credentials.credentials)
+    scheme, _, token = authorization.partition(" ")
+
+    if scheme.lower() != "bearer" or not token:
+        raise UnAuthorizedError("Invalid authorization scheme")
+
+    return token_to_firebase_uid(token)
+
+
+def get_session_user_id(request: Request):
+    user_id = request.session.get("user_id")
+    if not isinstance(user_id, str):
+        raise UnAuthorizedError("User not found")
+    return UUID(user_id)

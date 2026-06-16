@@ -81,7 +81,7 @@ async def client(db_session: Session) -> AsyncGenerator[AsyncClient, None]:
     - get_firebase_uid  -> TEST_FIREBASE_UID を返す (Firebase 検証を回避)
     """
     from backend.auth.dependencies import get_firebase_uid
-    from backend.database import get_session
+    from backend.database import get_db_session
     from backend.main import app
 
     def override_get_session() -> Generator[Session, None, None]:
@@ -93,7 +93,7 @@ async def client(db_session: Session) -> AsyncGenerator[AsyncClient, None]:
     def override_get_email() -> str:
         return "test@example.com"
 
-    app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_db_session] = override_get_session
     app.dependency_overrides[get_firebase_uid] = override_get_firebase_uid
 
     transport = ASGITransport(app=app)
