@@ -1,6 +1,8 @@
 from backend.fairies.models import Fairy
-from sqlmodel import Session
+from sqlmodel import Session, select
 from backend.storage import get_bucket
+from uuid import UUID
+from backend.exceptions import NotFoundError
 
 
 def create(
@@ -35,3 +37,24 @@ def create(
     db_session.commit()
     db_session.refresh(fairy)
     return fairy
+
+
+def get_all(db_session: Session) -> list[Fairy]:
+    return db_session.exec(select(Fairy)).all()
+
+
+def get(id: UUID, db_session: Session) -> Fairy:
+    fairy = db_session.get(Fairy, id)
+    if not fairy:
+        raise NotFoundError()
+    return fairy
+
+
+def delete(id: UUID, db_session: Session):
+    image_path = get(id, db_session).image_path
+    fairy = get(id, db_session)
+    db_session.delete(fairy)
+    db_session.commit()
+
+    blob = get_bucket().blob(image_path)
+    blob.delete()
