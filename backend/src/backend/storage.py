@@ -1,4 +1,5 @@
 from google.cloud import storage
+from datetime import timedelta
 from backend.config import settings
 
 _storage_client: storage.Client | None = None
@@ -22,7 +23,9 @@ def get_bucket():
     return client.bucket(settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
 
 
-def get_public_url(file_path: str) -> str:
+def get_presigned_url(
+    file_path: str, expiration: timedelta = timedelta(hours=1)
+) -> str:
     bucket = get_bucket()
     blob = bucket.blob(file_path)
-    return blob.public_url
+    return blob.generate_signed_url(expiration=expiration)

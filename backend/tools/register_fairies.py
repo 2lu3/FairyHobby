@@ -72,6 +72,20 @@ fairy_personalities = {
 }
 
 
+fairy_names = {
+    "careful": "ミルフィ",
+    "cozy": "ココリ",
+    "gentle": "リュミナ",
+    "kind": "メルシア",
+    "nostalgic": "ノエル",
+    "passionate": "ルビエル",
+    "reflective": "シエラ",
+    "sentimental": "セレフィ",
+    "shy": "ミュリエ",
+    "warm_hearted": "ポルフィ",
+}
+
+
 def glob_fairy_images():
     files = glob.glob("data/fairies/*.png")
     return list(files)
@@ -95,7 +109,9 @@ def main():
             image_bytes = open(image_path, "rb").read()
             image_content_type = "image/png"
 
-            fairy = create(name, prompt, image_bytes, image_content_type, db_session)
+            fairy = create(
+                fairy_names[name], prompt, image_bytes, image_content_type, db_session
+            )
             logger.info(f"Created fairy: {fairy.id}")
 
 

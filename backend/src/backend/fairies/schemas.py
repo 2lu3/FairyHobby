@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from uuid import UUID
 from backend.fairies.models import Fairy
-from backend.storage import get_public_url
+from backend.storage import get_presigned_url
 
 
 class FairyCreateRequest(BaseModel):
@@ -21,5 +21,5 @@ class FairyReadResponse(BaseModel):
             id=fairy.id,
             name=fairy.name,
             prompt=fairy.prompt,
-            image_url=get_public_url(fairy.image_path),
+            image_url=get_presigned_url(fairy.image_path),
         )
