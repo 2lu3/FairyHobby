@@ -10,16 +10,6 @@ from firebase_admin.auth import (
 from firebase_admin.exceptions import FirebaseError
 from backend.exceptions import UnAuthorizedError
 
-_firebase_app: firebase_admin.App | None = None
-
-
-def init_firebase_app() -> None:
-    """Firebase アプリを初期化する"""
-    global _firebase_app
-    if _firebase_app is not None:
-        return
-    _firebase_app = firebase_admin.initialize_app()
-
 
 def token_to_firebase_uid(token: str) -> str:
     """firebase id tokenを検証し、firebase uidを返す
@@ -65,11 +55,3 @@ def get_email_from_firebase(firebase_uid: str) -> str:
         return user.email
     except (ValueError, UserNotFoundError, FirebaseError) as e:
         raise UnAuthorizedError("Failed to get email from firebase") from e
-
-
-def firebase_app() -> firebase_admin.App:
-    """Firebase アプリを取得する"""
-    global _firebase_app
-    if _firebase_app is None:
-        raise RuntimeError("Firebase app is not initialized")
-    return _firebase_app

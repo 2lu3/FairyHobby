@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     GOOGLE_CLOUD_SQL_REGION: str
     GOOGLE_CLOUD_SQL_INSTANCE_NAME: str
 
+    GOOGLE_CLOUD_STORAGE_BUCKET_NAME: str = "fairyhobby"
+
     @computed_field
     @property
     def SQLMODEL_DATABASE_URL(self) -> str:
