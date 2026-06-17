@@ -1,8 +1,6 @@
 import { redirect, Outlet } from "react-router";
 import type { Route } from "./+types/_auth";
 import { backendFetch } from "~/lib/fetcher.server";
-import { createSession } from "~/lib/auth.server";
-
 
 export async function loader({ request }: Route.LoaderArgs) {
     const res = await backendFetch(request, "/users/me")
