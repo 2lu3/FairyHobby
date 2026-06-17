@@ -1,5 +1,5 @@
 from backend.activities.schemas import ActivityCreateRequest, ActivityUpdateRequest
-from backend.activities.models import Activity
+from backend.activities.models import Activity, ActivityImage
 from backend.users.models import User
 from sqlmodel import Session
 from uuid import UUID
@@ -20,12 +20,15 @@ def create(
     activity = Activity(
         name=in_activity.name,
         description=in_activity.description,
-        image_urls=in_activity.image_urls,
         owner_store_id=in_activity.owner_store_id,
         address=in_activity.address,
         latitude=in_activity.latitude,
         longitude=in_activity.longitude,
     )
+
+    for image_url in in_activity.image_urls:
+        activity_image = ActivityImage(image_url=image_url)
+        activity.images.append(activity_image)
 
     db_session.add(activity)
     db_session.commit()

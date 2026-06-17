@@ -14,7 +14,7 @@ class Activity(Base, table=True):
 
     name: str
     description: str
-    image_urls: list[str]
+    images: list["ActivityImage"] = Relationship(back_populates="activity")
 
     owner_store_id: UUID = Field(foreign_key="stores.id")
     owner_store: "Store" = Relationship(back_populates="activities")
@@ -22,3 +22,12 @@ class Activity(Base, table=True):
     address: str | None
     latitude: float | None
     longitude: float | None
+
+
+class ActivityImage(Base, table=True):
+    __tablename__ = "activity_images"
+
+    image_url: str
+
+    activity_id: UUID = Field(foreign_key="activities.id")
+    activity: "Activity" = Relationship(back_populates="images")

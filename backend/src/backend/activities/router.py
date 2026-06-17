@@ -36,7 +36,8 @@ def create_activity(
     current_user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ) -> ActivityReadResponse:
-    return create(activity, current_user, db_session)
+    activity = create(activity, current_user, db_session)
+    return ActivityReadResponse.from_activity(activity)
 
 
 @router.get(
@@ -57,7 +58,8 @@ def get_activity(
     _: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ) -> ActivityReadResponse:
-    return get(activity_id, db_session)
+    activity = get(activity_id, db_session)
+    return ActivityReadResponse.from_activity(activity)
 
 
 @router.patch(
@@ -82,7 +84,8 @@ def update_activity(
     current_user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ) -> ActivityReadResponse:
-    return update(activity_id, in_activity, current_user, db_session)
+    activity = update(activity_id, in_activity, current_user, db_session)
+    return ActivityReadResponse.from_activity(activity)
 
 
 @router.delete(
@@ -106,4 +109,5 @@ def delete_activity(
     current_user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ):
-    return delete(activity_id, current_user, db_session)
+    activity = delete(activity_id, current_user, db_session)
+    return ActivityReadResponse.from_activity(activity)

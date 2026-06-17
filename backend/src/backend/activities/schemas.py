@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from uuid import UUID
+from backend.activities.models import Activity
 
 
 class ActivityCreateRequest(BaseModel):
@@ -20,11 +21,24 @@ class ActivityReadResponse(BaseModel):
     description: str
     image_urls: list[str]
 
-    onwer_store_id: UUID
+    owner_store_id: UUID
 
     address: str | None
     latitude: float | None
     longitude: float | None
+
+    @classmethod
+    def from_activity(cls, activity: Activity) -> "ActivityReadResponse":
+        return cls(
+            id=activity.id,
+            name=activity.name,
+            description=activity.description,
+            image_urls=[image.image_url for image in activity.images],
+            owner_store_id=activity.owner_store_id,
+            address=activity.address,
+            latitude=activity.latitude,
+            longitude=activity.longitude,
+        )
 
 
 class ActivityUpdateRequest(BaseModel):

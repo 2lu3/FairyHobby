@@ -11,6 +11,8 @@ from alembic import context
 from sqlmodel import SQLModel
 from backend.users.models import User  # noqa: F401
 from backend.database import Base  # noqa: F401
+from backend.stores.models import Store  # noqa: F401
+from backend.activities.models import Activity  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -35,7 +37,7 @@ def _get_database_url() -> str:
     return settings.SQLMODEL_DATABASE_URL
 
 
-config.set_main_option("sqlalchemy.url", _get_database_url())
+config.set_main_option("sqlalchemy.url", _get_database_url().replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
