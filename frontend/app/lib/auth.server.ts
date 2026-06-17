@@ -1,5 +1,12 @@
 import { env } from "~/lib/env.server";
 
+function getSetCookieValue(response: Response): string | null {
+  const cookies = response.headers.getSetCookie?.();
+  if (cookies && cookies.length > 0) {
+    return cookies[0];
+  }
+  return response.headers.get("Set-Cookie");
+}
 
 export async function registerUser(params: {
   displayName: string;
@@ -16,7 +23,7 @@ export async function registerUser(params: {
 
   const data = await response.json().catch(() => null);
 
-  return { response, data, setCookie: response.headers.get("Set-Cookie") };
+  return { response, data, setCookie: getSetCookieValue(response) };
 }
 
 export async function createSession(token: string) {
@@ -32,5 +39,5 @@ export async function createSession(token: string) {
   const needs_signup = data?.needs_signup as boolean;
   const user_id = data?.id as string | null;
 
-  return { user_id, needs_signup, setCookie: response.headers.get("Set-Cookie") };
+  return { user_id, needs_signup, setCookie: getSetCookieValue(response) };
 }
