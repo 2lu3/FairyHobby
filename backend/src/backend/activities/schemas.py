@@ -7,6 +7,8 @@ class ActivityCreateRequest(BaseModel):
     description: str
     image_urls: list[str]
 
+    owner_store_id: UUID
+
     address: str | None
     latitude: float | None
     longitude: float | None
@@ -16,6 +18,9 @@ class ActivityReadResponse(BaseModel):
     id: UUID
     name: str
     description: str
+    image_urls: list[str]
+
+    onwer_store_id: UUID
 
     address: str | None
     latitude: float | None
@@ -23,9 +28,10 @@ class ActivityReadResponse(BaseModel):
 
 
 class ActivityUpdateRequest(BaseModel):
-    name: str | None = None
-    description: str | None = None
-    image_urls: list[str]
-    address: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
+    name: str | None
+    description: str | None
+    image_urls: list[str] | None
+
+    address: str | None
+    latitude: float | None
+    longitude: float | None
