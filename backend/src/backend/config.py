@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
+from urllib.parse import quote_plus
 
 
 class Settings(BaseSettings):
@@ -17,10 +18,18 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
 
+    GOOGLE_CLOUD_PROJECT_ID: str
+    GOOGLE_CLOUD_SQL_REGION: str
+    GOOGLE_CLOUD_SQL_INSTANCE_NAME: str
+
     @computed_field
     @property
     def SQLMODEL_DATABASE_URL(self) -> str:
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        password = quote_plus(self.POSTGRES_PASSWORD)
+        if self.APP_ENV == "prod":
+            return f"postgresql://{self.POSTGRES_USER}:{password}@/{self.POSTGRES_DB}?host=/cloudsql/{self.GOOGLE_CLOUD_PROJECT_ID}:{self.GOOGLE_CLOUD_SQL_REGION}:{self.GOOGLE_CLOUD_SQL_INSTANCE_NAME}"
+        else:
+            return f"postgresql://{self.POSTGRES_USER}:{password}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     GOOGLE_APPLICATION_CREDENTIALS: str | None = None
 
