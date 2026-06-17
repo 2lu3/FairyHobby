@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     def SQLMODEL_DATABASE_URL(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
-    GOOGLE_APPLICATION_CREDENTIALS: str
+    GOOGLE_APPLICATION_CREDENTIALS: str | None
 
     FRONTEND_URL: str
 

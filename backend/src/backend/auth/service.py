@@ -35,7 +35,7 @@ def token_to_firebase_uid(token: str) -> str:
     """
     try:
         firebase_uid = firebase_admin.auth.verify_id_token(token).get("uid")
-        if not isinstance(firebase_uid, str) and firebase_uid != "":
+        if not isinstance(firebase_uid, str) or firebase_uid == "":
             raise UnAuthorizedError("Invalid firebase uid")
         return firebase_uid
     except (

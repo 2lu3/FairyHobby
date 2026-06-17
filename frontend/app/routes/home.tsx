@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { redirect, useSubmit } from "react-router";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import StartModal from "~/component/home/StartModal";
 import { auth, provider } from "~/lib/firebase.client";
 import Container from "~/component/Container";
@@ -33,22 +33,20 @@ export default function Login() {
 
 
   const handleLoginSubmit = async () => {
-    await signInWithPopup(auth, provider)
-      .catch((error) => {
-        setErrorMessage("ログインが中断されました");
-        return;
-      });
+    try {
+      await signInWithPopup(auth, provider);
+    } catch {
+      setErrorMessage("ログインが中断されました");
+      return;
+    }
+
     const token = await auth.currentUser?.getIdToken();
     if (!token) {
       setErrorMessage("ログインに失敗しました");
       return;
     }
-    
-    submit(
-      { token },
-      { method: "post" },
-    );
-    
+
+    submit({ token }, { method: "post" });
   }
 
   return (

@@ -1,6 +1,6 @@
 import { Form, redirect, useNavigate, useNavigation } from "react-router";
 import { useState, useEffect } from "react";
-import type { Route } from "./+types/route";
+import type { Route } from "./+types/signin";
 import { useAuthUser } from "~/lib/useAuthUser.client";
 import { registerUser, createSession } from "~/lib/auth.server";
 import Container from "~/component/Container";
@@ -38,7 +38,7 @@ export async function action({ request }: Route.ActionArgs) {
         }
 
         return {
-            errorMessage: `ログインに失敗しました: needs_signup=${session.needs_signup}, user_id=${session.user_id}`,
+            errorMessage: `ログインに失敗しました`,
         };
     }
 

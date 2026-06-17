@@ -6,18 +6,15 @@ import type { Route } from "./+types/logout";
 
 
 export async function action({ request }: Route.ActionArgs) {
-    backendFetch(request, "/auth/session", {
+    await backendFetch(request, "/auth/session", {
         method: "DELETE",
     });
-    return 
+    return null;
 }
 
-export async function clientAction({request, serverAction}: Route.ClientActionArgs) {
-    console.log("clientAction");
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
     await serverAction();
-    console.log("signOut");
     await signOut(auth);
-    console.log("redirect");
     return redirect("/home");
 }
 

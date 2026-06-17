@@ -12,26 +12,18 @@ export default function Home() {
         Response
     >;
 
-    console.log(user);
-    console.log(user.icon);
-    console.log(user.display_name);
-
     return (
         <div className="flex flex-col">
-            
             <Container className="flex-1 min-h-screen">
                 <div className="mt-8">
                     <Header name={user.display_name} icon={user.icon} />
                 </div>
-                <main>
-
-                </main>
+                <main></main>
             </Container>
             <Footer />
             <div className="fixed bottom-8 left-8 z-50">
                 <SettingsButton />
             </div>
         </div>
-        
     );
 }
