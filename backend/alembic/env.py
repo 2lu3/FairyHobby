@@ -12,7 +12,8 @@ from sqlmodel import SQLModel
 from backend.users.models import User  # noqa: F401
 from backend.database import Base  # noqa: F401
 from backend.stores.models import Store  # noqa: F401
-from backend.activities.models import Activity  # noqa: F401
+from backend.activities.models import Activity, ActivityImage  # noqa: F401
+from backend.plans.models import Plan, PlanItem  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

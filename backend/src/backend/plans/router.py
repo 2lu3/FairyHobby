@@ -1,23 +1,25 @@
-from fastapi import APIRouter, status, Depends
-from sqlmodel import Session
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, status
+from sqlmodel import Session
+
 from backend.database import get_db_session
+from backend.plans.schemas import PlanCreateRequest, PlanReadResponse, PlanUpdateRequest
+from backend.plans.service import create, delete, get, update
 from backend.users.dependencies import get_current_user
 from backend.users.models import User
-from .schemas import ActivityReadResponse, ActivityCreateRequest, ActivityUpdateRequest
-from .service import create, get, update, delete
 
 router = APIRouter(
-    prefix="/activities",
-    tags=["activities"],
+    prefix="/plans",
+    tags=["plans"],
 )
 
 
 @router.post(
     "/",
-    response_model=ActivityReadResponse,
+    response_model=PlanReadResponse,
     status_code=status.HTTP_201_CREATED,
-    description="Create a new activity",
+    description="Create a new plan",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Unauthorized",
@@ -30,19 +32,19 @@ router = APIRouter(
         },
     },
 )
-def create_activity(
-    activity: ActivityCreateRequest,
+def create_plan(
+    in_plan: PlanCreateRequest,
     current_user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
-) -> ActivityReadResponse:
-    activity = create(activity, current_user, db_session)
-    return ActivityReadResponse.from_activity(activity)
+) -> PlanReadResponse:
+    plan = create(in_plan, current_user, db_session)
+    return PlanReadResponse.from_plan(plan)
 
 
 @router.get(
-    "/{activity_id}",
-    response_model=ActivityReadResponse,
-    description="Get an activity",
+    "/{plan_id}",
+    response_model=PlanReadResponse,
+    description="Get a plan",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Unauthorized",
@@ -52,19 +54,19 @@ def create_activity(
         },
     },
 )
-def get_activity(
-    activity_id: UUID,
+def get_plan(
+    plan_id: UUID,
     _: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
-) -> ActivityReadResponse:
-    activity = get(activity_id, db_session)
-    return ActivityReadResponse.from_activity(activity)
+) -> PlanReadResponse:
+    plan = get(plan_id, db_session)
+    return PlanReadResponse.from_plan(plan)
 
 
 @router.patch(
-    "/{activity_id}",
-    response_model=ActivityReadResponse,
-    description="Update an activity",
+    "/{plan_id}",
+    response_model=PlanReadResponse,
+    description="Update a plan",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Unauthorized",
@@ -77,20 +79,20 @@ def get_activity(
         },
     },
 )
-def update_activity(
-    activity_id: UUID,
-    in_activity: ActivityUpdateRequest,
+def update_plan(
+    plan_id: UUID,
+    in_plan: PlanUpdateRequest,
     current_user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
-) -> ActivityReadResponse:
-    activity = update(activity_id, in_activity, current_user, db_session)
-    return ActivityReadResponse.from_activity(activity)
+) -> PlanReadResponse:
+    plan = update(plan_id, in_plan, current_user, db_session)
+    return PlanReadResponse.from_plan(plan)
 
 
 @router.delete(
-    "/{activity_id}",
-    response_model=ActivityReadResponse,
-    description="Delete an activity",
+    "/{plan_id}",
+    response_model=PlanReadResponse,
+    description="Delete a plan",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Unauthorized",
@@ -103,10 +105,11 @@ def update_activity(
         },
     },
 )
-def delete_activity(
-    activity_id: UUID,
+def delete_plan(
+    plan_id: UUID,
     current_user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
-):
-    activity = delete(activity_id, current_user, db_session)
-    return ActivityReadResponse.from_activity(activity)
+) -> PlanReadResponse:
+    plan = get(plan_id, db_session)
+    delete(plan_id, current_user, db_session)
+    return PlanReadResponse.from_plan(plan)

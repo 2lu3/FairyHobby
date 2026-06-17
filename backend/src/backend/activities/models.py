@@ -14,7 +14,11 @@ class Activity(Base, table=True):
 
     name: str
     description: str
-    images: list["ActivityImage"] = Relationship(back_populates="activity")
+    price: int
+    images: list["ActivityImage"] = Relationship(
+        back_populates="activity",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
 
     owner_store_id: UUID = Field(foreign_key="stores.id")
     owner_store: "Store" = Relationship(back_populates="activities")

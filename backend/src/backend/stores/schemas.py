@@ -11,7 +11,7 @@ class StoreReadResponse(BaseModel):
     id: UUID
     name: str
     description: str
-    owner_id: UUID
+    owner_user_id: UUID
 
 
 class StoreUpdateRequest(BaseModel):

@@ -20,6 +20,7 @@ def create(
     activity = Activity(
         name=in_activity.name,
         description=in_activity.description,
+        price=in_activity.price,
         owner_store_id=in_activity.owner_store_id,
         address=in_activity.address,
         latitude=in_activity.latitude,
@@ -63,6 +64,8 @@ def update(
         activity.name = in_activity.name
     if in_activity.description is not None:
         activity.description = in_activity.description
+    if in_activity.price is not None:
+        activity.price = in_activity.price
     if in_activity.image_urls is not None:
         activity.image_urls = in_activity.image_urls
     if in_activity.address is not None:

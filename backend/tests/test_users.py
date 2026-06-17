@@ -22,7 +22,7 @@ async def test_create_user(client, db_session, firebase_uid, monkeypatch):
         lambda firebase_uid: "new@example.com",
     )
 
-    res = await client.post("/users/", json={"display_name": "New User"})
+    res = await client.post("/users", json={"display_name": "New User"})
 
     assert res.status_code == 201
     body = res.json()
@@ -101,6 +101,7 @@ def _seed_user(session: Session, **overrides) -> User:
         firebase_uid="seed-uid",
         email="seed@example.com",
         display_name="Seed",
+        icon="🙂",
         is_admin=False,
     )
     defaults.update(overrides)

@@ -5,6 +5,7 @@ from backend.users.router import router as users_router
 from backend.auth.router import router as auth_router
 from backend.stores.router import router as stores_router
 from backend.activities.router import router as activities_router
+from backend.plans.router import router as plans_router
 from backend.exceptions import init_exception_handlers
 from backend.middlewares import init_middlewares
 
@@ -21,6 +22,7 @@ app.include_router(users_router)
 app.include_router(auth_router)
 app.include_router(stores_router)
 app.include_router(activities_router)
+app.include_router(plans_router)
 
 init_middlewares(app)
 init_exception_handlers(app)

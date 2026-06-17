@@ -6,6 +6,7 @@ from backend.activities.models import Activity
 class ActivityCreateRequest(BaseModel):
     name: str
     description: str
+    price: int
     image_urls: list[str]
 
     owner_store_id: UUID
@@ -19,6 +20,7 @@ class ActivityReadResponse(BaseModel):
     id: UUID
     name: str
     description: str
+    price: int
     image_urls: list[str]
 
     owner_store_id: UUID
@@ -33,6 +35,7 @@ class ActivityReadResponse(BaseModel):
             id=activity.id,
             name=activity.name,
             description=activity.description,
+            price=activity.price,
             image_urls=[image.image_url for image in activity.images],
             owner_store_id=activity.owner_store_id,
             address=activity.address,
@@ -44,6 +47,7 @@ class ActivityReadResponse(BaseModel):
 class ActivityUpdateRequest(BaseModel):
     name: str | None
     description: str | None
+    price: int | None
     image_urls: list[str] | None
 
     address: str | None

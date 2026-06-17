@@ -18,4 +18,4 @@ class Store(Base, table=True):
     owner_user_id: UUID = Field(foreign_key="users.id")
     owner_user: "User" = Relationship(back_populates="stores")
 
-    activities: list["Activity"] = Relationship(back_populates="store")
+    activities: list["Activity"] = Relationship(back_populates="owner_store")
