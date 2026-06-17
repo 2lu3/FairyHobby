@@ -1,0 +1,39 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run pytest
+        run: uv run pytest -v
+        env:
+          # CI 環境では Ryuk コンテナが不要なことが多い
+          TESTCONTAINERS_RYUK_DISABLED: "true"
