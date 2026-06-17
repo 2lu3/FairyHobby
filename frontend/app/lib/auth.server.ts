@@ -8,6 +8,16 @@ function getSetCookieValue(response: Response): string | null {
   return response.headers.get("Set-Cookie");
 }
 
+export function redirectHeaders(setCookie: string | null): Headers | undefined {
+  if (!setCookie) {
+    return undefined;
+  }
+
+  const headers = new Headers();
+  headers.append("Set-Cookie", setCookie);
+  return headers;
+}
+
 export async function registerUser(params: {
   displayName: string;
   token: string;
