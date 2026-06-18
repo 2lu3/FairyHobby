@@ -1,22 +1,32 @@
-from fastapi import FastAPI
+import logging
 from contextlib import asynccontextmanager
-from backend.firebase import init_firebase_app
-from backend.users.router import router as users_router
-from backend.auth.router import router as auth_router
-from backend.stores.router import router as stores_router
+
+from fastapi import FastAPI
+
 from backend.activities.router import router as activities_router
-from backend.plans.router import router as plans_router
-from backend.fairies.router import router as fairies_router
+from backend.auth.router import router as auth_router
 from backend.exceptions import init_exception_handlers
+from backend.fairies.router import router as fairies_router
+from backend.firebase import init_firebase_app
+from backend.logging import setup_logging
 from backend.middlewares import init_middlewares
+from backend.plans.router import router as plans_router
 from backend.storage import init_storage_client
+from backend.stores.router import router as stores_router
+from backend.users.router import router as users_router
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_logging()
+    logger.info("Starting application")
     init_firebase_app()
     init_storage_client()
+    logger.info("Application startup complete")
     yield
+    logger.info("Application shutdown")
 
 
 app = FastAPI(lifespan=lifespan)

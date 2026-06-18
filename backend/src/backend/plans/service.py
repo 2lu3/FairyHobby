@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 from sqlmodel import Session
@@ -7,6 +8,8 @@ from backend.exceptions import NotFoundError, PermissionDeniedError
 from backend.plans.models import Plan, PlanItem
 from backend.plans.schemas import PlanCreateRequest, PlanItemSchema, PlanUpdateRequest
 from backend.users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 def _check_plan_owner(plan: Plan, current_user: User) -> None:
@@ -42,6 +45,7 @@ def create(in_plan: PlanCreateRequest, current_user: User, db_session: Session) 
     db_session.add(plan)
     db_session.commit()
     db_session.refresh(plan)
+    logger.info("Created plan %s by %s", plan.id, current_user.id)
     return plan
 
 
@@ -84,6 +88,7 @@ def update(
     db_session.add(plan)
     db_session.commit()
     db_session.refresh(plan)
+    logger.info("Updated plan %s by %s", plan.id, current_user.id)
     return plan
 
 
@@ -96,4 +101,5 @@ def delete(plan_id: UUID, current_user: User, db_session: Session) -> Plan:
 
     db_session.delete(plan)
     db_session.commit()
+    logger.info("Deleted plan %s by %s", plan_id, current_user.id)
     return plan

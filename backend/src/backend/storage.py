@@ -1,6 +1,11 @@
-from google.cloud import storage
+import logging
 from datetime import timedelta
+
+from google.cloud import storage
+
 from backend.config import settings
+
+logger = logging.getLogger(__name__)
 
 _storage_client: storage.Client | None = None
 
@@ -8,7 +13,12 @@ _storage_client: storage.Client | None = None
 def init_storage_client():
     global _storage_client
     if _storage_client is None:
-        _storage_client = storage.Client()
+        try:
+            _storage_client = storage.Client()
+        except Exception:
+            logger.critical("Failed to initialize Cloud Storage client")
+            raise
+        logger.info("Cloud Storage client initialized")
     return _storage_client
 
 

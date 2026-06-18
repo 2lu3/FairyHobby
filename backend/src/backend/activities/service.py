@@ -1,10 +1,15 @@
-from backend.activities.schemas import ActivityCreateRequest, ActivityUpdateRequest
-from backend.activities.models import Activity, ActivityImage
-from backend.users.models import User
-from sqlmodel import Session
+import logging
 from uuid import UUID
+
+from sqlmodel import Session
+
+from backend.activities.models import Activity, ActivityImage
+from backend.activities.schemas import ActivityCreateRequest, ActivityUpdateRequest
 from backend.exceptions import NotFoundError, PermissionDeniedError
 from backend.stores.models import Store
+from backend.users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 def create(
@@ -34,6 +39,7 @@ def create(
     db_session.add(activity)
     db_session.commit()
     db_session.refresh(activity)
+    logger.info("Created activity %s by %s", activity.id, current_user.id)
     return activity
 
 
@@ -78,6 +84,7 @@ def update(
     db_session.add(activity)
     db_session.commit()
     db_session.refresh(activity)
+    logger.info("Updated activity %s by %s", activity.id, current_user.id)
     return activity
 
 
@@ -94,4 +101,5 @@ def delete(activity_id: UUID, current_user: User, db_session: Session) -> Activi
 
     db_session.delete(activity)
     db_session.commit()
+    logger.info("Deleted activity %s by %s", activity_id, current_user.id)
     return activity

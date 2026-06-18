@@ -1,11 +1,14 @@
-import os
 import glob
-from backend.fairies.service import create
-from backend.database import engine
-from backend.storage import init_storage_client
-from loguru import logger
+import logging
+import os
+
 from sqlmodel import Session
-from backend.fairies.service import get_all, delete
+
+from backend.database import engine
+from backend.fairies.service import create, delete, get_all
+from backend.storage import init_storage_client
+
+logger = logging.getLogger(__name__)
 
 
 fairy_personalities = {

@@ -1,8 +1,13 @@
-from backend.fairies.models import Fairy
-from sqlmodel import Session, select
-from backend.storage import get_bucket
+import logging
 from uuid import UUID
+
+from sqlmodel import Session, select
+
 from backend.exceptions import NotFoundError
+from backend.fairies.models import Fairy
+from backend.storage import get_bucket
+
+logger = logging.getLogger(__name__)
 
 
 def create(
@@ -32,10 +37,12 @@ def create(
     bucket = get_bucket()
     blob = bucket.blob(image_path)
     blob.upload_from_string(image_bytes, content_type=image_content_type)
+    logger.debug("Uploaded fairy image to %s", image_path)
 
     db_session.add(fairy)
     db_session.commit()
     db_session.refresh(fairy)
+    logger.info("Created fairy %s (name=%s)", fairy.id, fairy.name)
     return fairy
 
 
@@ -58,3 +65,4 @@ def delete(id: UUID, db_session: Session):
 
     blob = get_bucket().blob(image_path)
     blob.delete()
+    logger.info("Deleted fairy %s (image=%s)", id, image_path)

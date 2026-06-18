@@ -1,9 +1,14 @@
-from sqlmodel import Session
+import logging
 from uuid import UUID
-from backend.stores.schemas import StoreCreateRequest, StoreUpdateRequest
-from backend.stores.models import Store
-from backend.users.models import User
+
+from sqlmodel import Session
+
 from backend.exceptions import NotFoundError, PermissionDeniedError
+from backend.stores.models import Store
+from backend.stores.schemas import StoreCreateRequest, StoreUpdateRequest
+from backend.users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 def create(
@@ -17,6 +22,7 @@ def create(
     db_session.add(store)
     db_session.commit()
     db_session.refresh(store)
+    logger.info("Created store %s by %s", store.id, current_user.id)
     return store
 
 
@@ -43,6 +49,7 @@ def update(
     db_session.add(store)
     db_session.commit()
     db_session.refresh(store)
+    logger.info("Updated store %s by %s", store.id, current_user.id)
     return store
 
 
@@ -54,4 +61,5 @@ def delete(store_id: UUID, current_user: User, db_session: Session) -> Store:
         raise PermissionDeniedError()
     db_session.delete(store)
     db_session.commit()
+    logger.info("Deleted store %s by %s", store_id, current_user.id)
     return store

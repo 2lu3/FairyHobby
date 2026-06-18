@@ -1,15 +1,19 @@
+from importlib.resources import files
+import logging
 from uuid import UUID
 
-from sqlmodel import Session, select
-from importlib.resources import files
 from dicebear import Avatar, Style
+from sqlmodel import Session, select
+
 from backend.auth.service import get_email_from_firebase
+from backend.exceptions import ConflictError, NotFoundError, PermissionDeniedError
 from backend.users.models import User
 from backend.users.schemas import (
     UserCreateRequest,
     UserUpdateRequest,
 )
-from backend.exceptions import NotFoundError, ConflictError, PermissionDeniedError
+
+logger = logging.getLogger(__name__)
 
 
 def create(in_user: UserCreateRequest, firebase_uid: str, db_session: Session) -> User:
@@ -31,6 +35,7 @@ def create(in_user: UserCreateRequest, firebase_uid: str, db_session: Session) -
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
+    logger.info("Created user %s", user.id)
     return user
 
 
@@ -83,6 +88,7 @@ def update(
     db_session.add(target_user)
     db_session.commit()
     db_session.refresh(target_user)
+    logger.info("Updated user %s by %s", target_user.id, current_user.id)
     return target_user
 
 
@@ -98,6 +104,7 @@ def delete(user_id: UUID, current_user: User, db_session: Session) -> User:
 
     db_session.delete(target_user)
     db_session.commit()
+    logger.info("Deleted user %s by %s", target_user.id, current_user.id)
     return target_user
 
 
