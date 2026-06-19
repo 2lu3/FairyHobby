@@ -1,7 +1,10 @@
 import logging
 from datetime import timedelta
 
+import google.auth
+from google.auth.transport import requests
 from google.cloud import storage
+from google.oauth2 import service_account
 
 from backend.config import settings
 
@@ -38,4 +41,19 @@ def get_presigned_url(
 ) -> str:
     bucket = get_bucket()
     blob = bucket.blob(file_path)
-    return blob.generate_signed_url(expiration=expiration)
+
+    signing_kwargs: dict = {
+        "version": "v4",
+        "expiration": expiration,
+        "method": "GET",
+    }
+
+    credentials, _ = google.auth.default()
+    if not isinstance(credentials, service_account.Credentials):
+        # Cloud Run 等: 秘密鍵のない Compute Engine 認証情報は IAM signBlob で署名する
+        auth_request = requests.Request()
+        credentials.refresh(auth_request)
+        signing_kwargs["service_account_email"] = credentials.service_account_email
+        signing_kwargs["access_token"] = credentials.token
+
+    return blob.generate_signed_url(**signing_kwargs)
