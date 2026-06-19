@@ -6,7 +6,11 @@ from sqlmodel import Field, Session, SQLModel, create_engine
 
 from backend.config import settings
 
-engine = create_engine(settings.SQLMODEL_DATABASE_URL)
+engine = create_engine(
+    settings.SQLMODEL_DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=1800,
+)
 
 
 def get_db_session() -> Generator[Session, None, None]:

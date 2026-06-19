@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     APP_ENV: str  # dev / prod
 
     # 明示指定が無い場合は APP_ENV から決定する (dev=DEBUG / prod=INFO)
-    LOG_LEVEL: str | None = None
+    LOG_LEVEL: str | None = "DEBUG"
 
     API_V1_STR: str = "/api/v1"
 
