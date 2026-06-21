@@ -17,7 +17,7 @@ export default function Header( { name, icon, className }: HeaderProps ) {
                 </div>
                 <div className="flex-none">
                     <ul className="menu menu-horizontal px-1">
-                        <li><Link to="/home">ホーム</Link></li>
+                        <li><Link to="/">ホーム</Link></li>
                         <li><Link to="/mypage">マイページ</Link></li>
                     </ul>
                 </div>

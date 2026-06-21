@@ -7,7 +7,7 @@ interface FairyCardProps {
 
 export default function FairyCard({ image_url, name, description, onClick }: FairyCardProps) {
     return (
-        <div className="card card-side bg-base-100 shadow-sm">
+        <div className="card sm:card-side bg-base-100 shadow-sm">
             <figure>
                 <img
                     src={image_url}
