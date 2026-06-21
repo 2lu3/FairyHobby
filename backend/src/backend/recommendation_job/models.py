@@ -26,8 +26,6 @@ class RecommendationJob(Base, table=True):
 
     fairy_id: UUID = Field(foreign_key="fairies.id")
     fairy: "Fairy" = Relationship(back_populates="recommendation_jobs")
-    latitude: float
-    longitude: float
     date: date
     budget: int
 

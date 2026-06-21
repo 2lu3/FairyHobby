@@ -12,8 +12,8 @@ from backend.plans.models import Plan
 from backend.recommendation_job.models import RecommendationJob, RecommendationStatus
 from backend.recommendation_job.schemas import RecommendationJobCreateRequest
 from backend.recommendation_job.service import (
+    _generate_recommendation,
     create_job,
-    generate_recommendation,
     get_job_for_user,
 )
 from backend.recommendation_job.worker import Optimizer
@@ -38,8 +38,6 @@ def test_create_job(db_session: Session, logged_in_user: User):
     fairy = _seed_fairy(db_session)
     request = RecommendationJobCreateRequest(
         fairy_id=fairy.id,
-        latitude=35.6812,
-        longitude=139.7671,
         date=date(2026, 6, 21),
         budget=10000,
     )
@@ -48,8 +46,6 @@ def test_create_job(db_session: Session, logged_in_user: User):
 
     assert job.user_id == logged_in_user.id
     assert job.fairy_id == fairy.id
-    assert job.latitude == 35.6812
-    assert job.longitude == 139.7671
     assert job.date == date(2026, 6, 21)
     assert job.budget == 10000
     assert job.status == RecommendationStatus.PENDING
@@ -99,8 +95,6 @@ def test_generate_recommendation_success(db_session: Session, logged_in_user: Us
         name="Similar Activity",
         price=2000,
         duration_minutes=90,
-        latitude=35.6812,
-        longitude=139.7671,
         embeddings=[1.0, 0.0, 0.0],
     )
     _seed_activity(
@@ -108,8 +102,6 @@ def test_generate_recommendation_success(db_session: Session, logged_in_user: Us
         name="Different Activity",
         price=5000,
         duration_minutes=120,
-        latitude=35.69,
-        longitude=139.77,
         embeddings=[0.0, 1.0, 0.0],
     )
     job = _seed_recommendation_job(
@@ -119,7 +111,7 @@ def test_generate_recommendation_success(db_session: Session, logged_in_user: Us
         budget=10000,
     )
 
-    generate_recommendation(job.id, db_session)
+    _generate_recommendation(job.id, db_session)
 
     db_session.refresh(job)
     assert job.status == RecommendationStatus.COMPLETED
@@ -143,7 +135,7 @@ def test_generate_recommendation_fails_on_optimizer_error(
     monkeypatch.setattr(Optimizer, "build_model", _raise)
 
     with pytest.raises(RuntimeError, match="optimization failed"):
-        generate_recommendation(job.id, db_session)
+        _generate_recommendation(job.id, db_session)
 
     db_session.refresh(job)
     assert job.status == RecommendationStatus.FAILED
@@ -154,8 +146,6 @@ def test_optimizer_raises_when_fairy_missing(db_session: Session, logged_in_user
     job = RecommendationJob(
         user_id=logged_in_user.id,
         fairy_id=uuid4(),
-        latitude=35.6812,
-        longitude=139.7671,
         date=date(2026, 6, 21),
         budget=10000,
     )
@@ -183,7 +173,7 @@ def test_generate_recommendation_skips_non_pending(
         plan_id=existing_plan.id,
     )
 
-    generate_recommendation(job.id, db_session)
+    _generate_recommendation(job.id, db_session)
 
     db_session.refresh(job)
     assert job.status == RecommendationStatus.COMPLETED
@@ -198,8 +188,6 @@ def test_optimizer_selects_within_budget(db_session: Session, logged_in_user: Us
         name="Similar",
         price=3000,
         duration_minutes=60,
-        latitude=35.6812,
-        longitude=139.7671,
         embeddings=[1.0, 0.0],
     )
     _seed_activity(
@@ -207,8 +195,6 @@ def test_optimizer_selects_within_budget(db_session: Session, logged_in_user: Us
         name="Dissimilar",
         price=3000,
         duration_minutes=60,
-        latitude=35.682,
-        longitude=139.768,
         embeddings=[0.0, 1.0],
     )
     job = _seed_recommendation_job(
@@ -234,8 +220,6 @@ async def test_create_recommendation_job(
     fairy = _seed_fairy(db_session)
     payload = {
         "fairy_id": str(fairy.id),
-        "latitude": 35.6812,
-        "longitude": 139.7671,
         "date": "2026-06-21",
         "budget": 10000,
     }
@@ -262,8 +246,6 @@ async def test_create_recommendation_job_not_found_when_user_absent(
         "/recommendation/jobs",
         json={
             "fairy_id": str(fairy_id),
-            "latitude": 35.6812,
-            "longitude": 139.7671,
             "date": "2026-06-21",
             "budget": 10000,
         },
@@ -373,8 +355,6 @@ def _seed_activity(session: Session, **overrides) -> Activity:
         duration_minutes=overrides.get("duration_minutes", 60),
         owner_store_id=store.id,
         address=overrides.get("address", "Tokyo"),
-        latitude=overrides.get("latitude"),
-        longitude=overrides.get("longitude"),
         embeddings=overrides.get("embeddings", [1.0, 0.0, 0.0]),
     )
     for image_url in image_urls:
@@ -394,8 +374,6 @@ def _seed_recommendation_job(
     job = RecommendationJob(
         user_id=user.id,
         fairy_id=fairy.id,
-        latitude=overrides.get("latitude", 35.6812),
-        longitude=overrides.get("longitude", 139.7671),
         date=overrides.get("date", date(2026, 6, 21)),
         budget=overrides.get("budget", 10000),
         status=overrides.get("status", RecommendationStatus.PENDING),

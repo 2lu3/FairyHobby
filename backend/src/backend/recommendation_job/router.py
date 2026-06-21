@@ -42,7 +42,7 @@ def create_recommendation_job(
 ) -> RecommendationJobReadResponse:
     job = create_job(recommendation_job, current_user, db_session)
 
-    background_tasks.add_task(generate_recommendation, job.id, db_session)
+    background_tasks.add_task(generate_recommendation, job.id)
     return RecommendationJobReadResponse.from_recommendation_job(job)
 
 

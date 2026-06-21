@@ -1,7 +1,5 @@
-import itertools
 from uuid import UUID
 
-import geopy.distance
 import numpy as np
 from ortools.sat.python import cp_model
 from sqlmodel import Session, select
@@ -44,23 +42,6 @@ class Optimizer:
         )
         self.model.Add(sum(self.x[activity.id] for activity in self.activities) <= 3)
 
-        for activity1, activity2 in itertools.combinations(self.activities, 2):
-            if (
-                activity1.latitude is None
-                or activity1.longitude is None
-                or activity2.latitude is None
-                or activity2.longitude is None
-            ):
-                continue
-            distance = self.calc_distance(
-                activity1.latitude,
-                activity1.longitude,
-                activity2.latitude,
-                activity2.longitude,
-            )
-            if distance > 5:
-                self.model.Add(self.x[activity1.id] + self.x[activity2.id] <= 1)
-
         self.model.Maximize(
             sum(
                 self.x[activity.id]
@@ -89,10 +70,3 @@ class Optimizer:
         if norm_a == 0 or norm_b == 0:
             return 0.0
         return float(np.dot(a_np, b_np) / (norm_a * norm_b))
-
-    def calc_distance(
-        self, latitude1: float, longitude1: float, latitude2: float, longitude2: float
-    ) -> float:
-        return geopy.distance.distance(
-            (latitude1, longitude1), (latitude2, longitude2)
-        ).km

@@ -133,8 +133,6 @@ def _seed_activity(
         duration_minutes=overrides.get("duration_minutes", 60),
         owner_store_id=store.id,
         address=overrides.get("address"),
-        latitude=overrides.get("latitude"),
-        longitude=overrides.get("longitude"),
     )
     for image_url in image_urls:
         activity.images.append(ActivityImage(image_url=image_url))
@@ -173,8 +171,6 @@ def _seed_activity_review(session: Session, **overrides) -> ActivityReview:
             duration_minutes=overrides.pop("duration_minutes", 60),
             owner_store_id=store.id,
             address=overrides.pop("address", None),
-            latitude=overrides.pop("latitude", None),
-            longitude=overrides.pop("longitude", None),
         )
         for image_url in image_urls:
             activity.images.append(ActivityImage(image_url=image_url))

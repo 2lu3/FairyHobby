@@ -16,8 +16,6 @@ class ActivityCreateRequest(BaseModel):
     owner_store_id: UUID
 
     address: str | None
-    latitude: float | None
-    longitude: float | None
 
 
 class ActivityReadResponse(BaseModel):
@@ -31,8 +29,6 @@ class ActivityReadResponse(BaseModel):
     owner_store_id: UUID
 
     address: str | None
-    latitude: float | None
-    longitude: float | None
 
     reviews: list[ActivityReviewReadResponse]
 
@@ -47,8 +43,6 @@ class ActivityReadResponse(BaseModel):
             image_urls=[image.image_url for image in activity.images],
             owner_store_id=activity.owner_store_id,
             address=activity.address,
-            latitude=activity.latitude,
-            longitude=activity.longitude,
             reviews=[
                 ActivityReviewReadResponse.from_review(review)
                 for review in activity.reviews
@@ -64,7 +58,5 @@ class ActivityUpdateRequest(BaseModel):
     image_urls: list[str] | None
 
     address: str | None
-    latitude: float | None
-    longitude: float | None
 
     preference_text: str | None

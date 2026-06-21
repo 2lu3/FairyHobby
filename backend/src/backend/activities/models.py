@@ -27,8 +27,6 @@ class Activity(Base, table=True):
     owner_store: "Store" = Relationship(back_populates="activities")
 
     address: str | None
-    latitude: float | None
-    longitude: float | None
 
     preference_text: str | None = None
 

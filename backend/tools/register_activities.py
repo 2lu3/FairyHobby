@@ -1,0 +1,77 @@
+import logging
+import tomllib
+from pathlib import Path
+from uuid import UUID
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlmodel import Session
+
+from backend.activities.schemas import ActivityCreateRequest
+from backend.activities.service import create, generate_preference_and_embeddings
+from backend.activity_reviews.models import ActivityReview  # noqa: F401
+from backend.database import engine
+from backend.users.service import get
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+ACTIVITIES_TOML_PATH = Path(__file__).parent / "example_activities.toml"
+
+
+class ToolSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    ADMIN_USER_ID: str
+    ADMIN_STORE_ID: str
+
+
+def load_activities(store_id: UUID) -> list[ActivityCreateRequest]:
+    with open(ACTIVITIES_TOML_PATH, "rb") as f:
+        data = tomllib.load(f)
+
+    activities: list[ActivityCreateRequest] = []
+    for raw in data.get("activities", []):
+        activities.append(
+            ActivityCreateRequest(
+                name=raw["name"],
+                description=raw["description"].strip(),
+                price=raw["price"],
+                duration_minutes=raw["duration_minutes"],
+                image_urls=raw.get("image_urls", []),
+                owner_store_id=store_id,
+                address=raw.get("address"),
+            )
+        )
+    return activities
+
+
+def main():
+    settings = ToolSettings()
+
+    activities = load_activities(settings.ADMIN_STORE_ID)
+    if not activities:
+        logger.warning("No activities found in %s", ACTIVITIES_TOML_PATH)
+        return
+
+    with Session(engine) as db_session:
+        admin_user = get(settings.ADMIN_USER_ID, db_session)
+
+        created_ids: list[UUID] = []
+        for in_activity in activities:
+            activity = create(in_activity, admin_user, db_session)
+            created_ids.append(activity.id)
+            logger.info("Created activity %s (%s)", activity.id, activity.name)
+
+    for activity_id in created_ids:
+        try:
+            generate_preference_and_embeddings(activity_id)
+            logger.info("Generated embeddings for activity %s", activity_id)
+        except Exception:
+            logger.exception(
+                "Failed to generate embeddings for activity %s", activity_id
+            )
+
+
+if __name__ == "__main__":
+    main()

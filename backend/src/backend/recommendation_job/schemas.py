@@ -8,8 +8,6 @@ from .models import RecommendationJob, RecommendationStatus
 
 class RecommendationJobCreateRequest(BaseModel):
     fairy_id: UUID
-    latitude: float
-    longitude: float
     date: date
     budget: int
 

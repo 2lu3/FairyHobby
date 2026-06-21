@@ -32,8 +32,6 @@ def create(
         duration_minutes=in_activity.duration_minutes,
         owner_store_id=in_activity.owner_store_id,
         address=in_activity.address,
-        latitude=in_activity.latitude,
-        longitude=in_activity.longitude,
         preference_text=None,
     )
 
@@ -83,10 +81,6 @@ def update(
         activity.image_urls = in_activity.image_urls
     if in_activity.address is not None:
         activity.address = in_activity.address
-    if in_activity.latitude is not None:
-        activity.latitude = in_activity.latitude
-    if in_activity.longitude is not None:
-        activity.longitude = in_activity.longitude
 
     db_session.add(activity)
     db_session.commit()

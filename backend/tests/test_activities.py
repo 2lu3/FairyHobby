@@ -20,8 +20,6 @@ async def test_create_activity(client, db_session, firebase_uid, logged_in_user)
         "image_urls": ["https://example.com/1.jpg", "https://example.com/2.jpg"],
         "owner_store_id": str(store.id),
         "address": "Tokyo",
-        "latitude": 35.6812,
-        "longitude": 139.7671,
     }
     res = await client.post("/activities/", json=payload)
     assert res.status_code == 201
@@ -33,8 +31,6 @@ async def test_create_activity(client, db_session, firebase_uid, logged_in_user)
     assert body["image_urls"] == payload["image_urls"]
     assert body["owner_store_id"] == str(store.id)
     assert body["address"] == "Tokyo"
-    assert body["latitude"] == 35.6812
-    assert body["longitude"] == 139.7671
     assert body["reviews"] == []
 
     created = db_session.get(Activity, body["id"])
@@ -56,8 +52,6 @@ async def test_create_activity_store_not_found(client, db_session, firebase_uid)
             "image_urls": [],
             "owner_store_id": str(uuid4()),
             "address": None,
-            "latitude": None,
-            "longitude": None,
         },
     )
     assert res.status_code == 404
@@ -85,8 +79,6 @@ async def test_create_activity_forbidden_when_not_store_owner(
             "image_urls": [],
             "owner_store_id": str(store.id),
             "address": None,
-            "latitude": None,
-            "longitude": None,
         },
     )
     assert res.status_code == 403
@@ -135,8 +127,6 @@ async def test_update_activity(client, db_session, firebase_uid):
             price=2000,
             duration_minutes=120,
             address="Osaka",
-            latitude=34.6937,
-            longitude=135.5023,
         ),
     )
     assert res.status_code == 200
@@ -146,8 +136,6 @@ async def test_update_activity(client, db_session, firebase_uid):
     assert body["price"] == 2000
     assert body["duration_minutes"] == 120
     assert body["address"] == "Osaka"
-    assert body["latitude"] == 34.6937
-    assert body["longitude"] == 135.5023
 
 
 async def test_update_activity_not_found(client, db_session, firebase_uid):
@@ -246,8 +234,6 @@ def _update_payload(**overrides) -> dict:
         "duration_minutes": None,
         "image_urls": None,
         "address": None,
-        "latitude": None,
-        "longitude": None,
         "preference_text": None,
     }
     defaults.update(overrides)
@@ -300,8 +286,6 @@ def _seed_activity(session: Session, **overrides) -> Activity:
         duration_minutes=overrides.get("duration_minutes", 60),
         owner_store_id=store.id,
         address=overrides.get("address"),
-        latitude=overrides.get("latitude"),
-        longitude=overrides.get("longitude"),
     )
     for image_url in image_urls:
         activity.images.append(ActivityImage(image_url=image_url))

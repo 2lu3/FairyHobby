@@ -42,5 +42,9 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str
 
+    # devの場合のみ設定する
+    ADMIN_USER_ID: str | None = None
+    ADMIN_STORE_ID: str | None = None
+
 
 settings = Settings()
