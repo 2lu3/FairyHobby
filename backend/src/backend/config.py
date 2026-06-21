@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from urllib.parse import quote_plus
@@ -42,9 +40,7 @@ class Settings(BaseSettings):
 
     FRONTEND_URL: str
 
-    # dev 環境の /docs から API を試すときに使う既定ユーザー（任意）
-    DOCS_BYPASS_USER_ID: UUID | None = None
-    DOCS_BYPASS_FIREBASE_UID: str | None = None
+    OPENAI_API_KEY: str
 
 
 settings = Settings()

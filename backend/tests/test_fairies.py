@@ -49,7 +49,7 @@ def mock_storage(monkeypatch):
 
     monkeypatch.setattr("backend.fairies.service.get_bucket", lambda: bucket)
     monkeypatch.setattr(
-        "backend.fairies.schemas.get_public_url",
+        "backend.fairies.schemas.get_presigned_url",
         lambda path: f"https://storage.example.com/{path}",
     )
     return bucket
@@ -80,9 +80,9 @@ def test_create_fairy_service(db_session: Session, mock_storage: FakeBucket):
 
 
 async def test_create_fairy(client, db_session, logged_in_user, mock_storage):
-    """POST /fairies/ でフェアリーを作成する。"""
+    """POST /fairies でフェアリーを作成する。"""
     res = await client.post(
-        "/fairies/",
+        "/fairies",
         data={"name": "Luna", "prompt": "A moon fairy"},
         files={"image": ("luna.png", PNG_BYTES, "image/png")},
     )
@@ -105,8 +105,35 @@ async def test_create_fairy(client, db_session, logged_in_user, mock_storage):
 async def test_create_fairy_not_found_when_user_absent(client, mock_storage):
     """DB にユーザーがいなければ 404。"""
     res = await client.post(
-        "/fairies/",
+        "/fairies",
         data={"name": "Luna", "prompt": "A moon fairy"},
         files={"image": ("luna.png", PNG_BYTES, "image/png")},
     )
     assert res.status_code == 404
+
+
+async def test_update_fairy(client, db_session, logged_in_user, mock_storage):
+    """PATCH /fairies/{id} がフェアリーを更新する。"""
+    created = await client.post(
+        "/fairies",
+        data={"name": "Luna", "prompt": "A moon fairy"},
+        files={"image": ("luna.png", PNG_BYTES, "image/png")},
+    )
+    assert created.status_code == 201
+    fairy_id = created.json()["id"]
+
+    res = await client.patch(
+        f"/fairies/{fairy_id}",
+        json={"name": "Sol", "prompt": "A sun fairy"},
+    )
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["name"] == "Sol"
+    assert body["prompt"] == "A sun fairy"
+    assert body["image_url"] == f"https://storage.example.com/fairies/{fairy_id}.png"
+
+    updated = db_session.get(Fairy, fairy_id)
+    assert updated is not None
+    assert updated.name == "Sol"
+    assert updated.prompt == "A sun fairy"

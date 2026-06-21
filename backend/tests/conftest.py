@@ -73,6 +73,24 @@ def firebase_uid() -> str:
     return TEST_FIREBASE_UID
 
 
+@pytest.fixture(autouse=True)
+def mock_openai_background_tasks(monkeypatch):
+    """OpenAI 呼び出しを伴う background task をテスト中は無効化する。"""
+
+    def _noop(*args, **kwargs):
+        if args:
+            return args[0]
+        return None
+
+    monkeypatch.setattr(
+        "backend.activities.router.generate_preference_and_embeddings", _noop
+    )
+    monkeypatch.setattr(
+        "backend.activity_reviews.router.generate_preference_and_embeddings", _noop
+    )
+    monkeypatch.setattr("backend.fairies.router.generate_embeddings", _noop)
+
+
 @pytest.fixture
 def logged_in_user(db_session: Session, firebase_uid: str):
     """認証が必要なエンドポイント向けに、ログイン済みユーザーを DB に投入する。"""

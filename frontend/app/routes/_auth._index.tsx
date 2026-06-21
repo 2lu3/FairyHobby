@@ -1,4 +1,4 @@
-import { useRouteLoaderData } from "react-router";
+import { useRouteLoaderData, useNavigate } from "react-router";
 
 import Header from "~/component/Header";
 import type { loader as authLoader } from "./_auth";
@@ -32,6 +32,8 @@ export default function Home(
         Response
     >;
 
+    const navigate = useNavigate();
+
     return (
         <div className="flex flex-col">
             <Container className="flex-1 min-h-screen">
@@ -40,15 +42,11 @@ export default function Home(
                 </div>
                 <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                     {fairies.map((fairy) => (
-                        <FairyCard key={fairy.id} image_url={fairy.image_url} name={fairy.name} description={fairy.description} onClick={() => {}} />
+                        <FairyCard key={fairy.id} image_url={fairy.image_url} name={fairy.name} description={fairy.description} onClick={() => { navigate(`/fairy/invitation/${fairy.id}`); }} />
                     ))}
-
                 </main>
             </Container>
-            <main>
 
-
-            </main>
             <Footer />
             <div className="fixed bottom-8 left-8 z-50">
                 <SettingsButton />

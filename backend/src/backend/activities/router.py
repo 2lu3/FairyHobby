@@ -1,11 +1,11 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, BackgroundTasks
 from sqlmodel import Session
 from uuid import UUID
 from backend.database import get_db_session
 from backend.users.dependencies import get_current_user
 from backend.users.models import User
 from .schemas import ActivityReadResponse, ActivityCreateRequest, ActivityUpdateRequest
-from .service import create, get, update, delete
+from .service import create, get, update, delete, generate_preference_and_embeddings
 
 router = APIRouter(
     prefix="/activities",
@@ -32,10 +32,12 @@ router = APIRouter(
 )
 def create_activity(
     activity: ActivityCreateRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ) -> ActivityReadResponse:
     activity = create(activity, current_user, db_session)
+    background_tasks.add_task(generate_preference_and_embeddings, activity.id)
     return ActivityReadResponse.from_activity(activity)
 
 
@@ -80,10 +82,12 @@ def get_activity(
 def update_activity(
     activity_id: UUID,
     in_activity: ActivityUpdateRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ) -> ActivityReadResponse:
     activity = update(activity_id, in_activity, current_user, db_session)
+    background_tasks.add_task(generate_preference_and_embeddings, activity.id)
     return ActivityReadResponse.from_activity(activity)
 
 

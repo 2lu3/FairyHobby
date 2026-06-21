@@ -1,12 +1,14 @@
-from backend.database import Base
-from sqlmodel import Field
-from uuid import UUID
-from sqlmodel import Relationship
-from backend.stores.models import Store
 from typing import TYPE_CHECKING
+from uuid import UUID
+
+from sqlalchemy import Column, JSON
+from sqlmodel import Field, Relationship
+
+from backend.database import Base
+from backend.stores.models import Store
 
 if TYPE_CHECKING:
-    from backend.stores.models import Store
+    from backend.activity_reviews.models import ActivityReview
 
 
 class Activity(Base, table=True):
@@ -15,6 +17,7 @@ class Activity(Base, table=True):
     name: str
     description: str
     price: int
+    duration_minutes: int
     images: list["ActivityImage"] = Relationship(
         back_populates="activity",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
@@ -26,6 +29,17 @@ class Activity(Base, table=True):
     address: str | None
     latitude: float | None
     longitude: float | None
+
+    preference_text: str | None = None
+
+    reviews: list["ActivityReview"] = Relationship(
+        back_populates="activity",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+
+    embeddings: list[float] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )
 
 
 class ActivityImage(Base, table=True):

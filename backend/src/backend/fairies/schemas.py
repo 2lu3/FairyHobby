@@ -23,3 +23,8 @@ class FairyReadResponse(BaseModel):
             prompt=fairy.prompt,
             image_url=get_presigned_url(fairy.image_path),
         )
+
+
+class FairyUpdateRequest(BaseModel):
+    name: str | None
+    prompt: str | None

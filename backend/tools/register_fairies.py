@@ -85,7 +85,7 @@ fairy_names = {
     "reflective": "シエラ",
     "sentimental": "セレフィ",
     "shy": "ミュリエ",
-    "warm_hearted": "ポルフィ",
+    "warm_hearted": "レーナ",
 }
 
 

@@ -13,6 +13,7 @@ from backend.users.models import User  # noqa: F401
 from backend.database import Base  # noqa: F401
 from backend.stores.models import Store  # noqa: F401
 from backend.activities.models import Activity, ActivityImage  # noqa: F401
+from backend.activity_reviews.models import ActivityReview  # noqa: F401
 from backend.fairies.models import Fairy  # noqa: F401
 from backend.plans.models import Plan, PlanItem  # noqa: F401
 

@@ -1,34 +1,22 @@
-import { Ellipsis, LogOut, NotebookPen, SettingsIcon, User } from "lucide-react"
-import { useId } from "react"
-import { Form, NavLink } from "react-router"
+import { Ellipsis, House, LogOut, NotebookPen, SettingsIcon, User } from "lucide-react"
+import { Form, NavLink, useLocation, useNavigate } from "react-router"
 
 export default function SettingsButton() {
-    const id = useId().replace(/:/g, "-");
-    const popoverId = `popover-${id}`;
-    const anchorName = `--anchor-${id}`;
-    return (
-        <div>
-            <button
-                type="button"
-                aria-label="メニューを開く"
-                className="btn btn-circle size-16 min-h-16 p-0 bg-base-100"
-                popoverTarget={popoverId}
-                style={{ anchorName: anchorName }}
-            >
-                <Ellipsis className="pointer-events-none" />
-            </button>
+    const location = useLocation();
+    const isHome = location.pathname === "/";
+    const navigate = useNavigate();
 
-            <div className="flex flex-col p-4 gap-4 dropdown bg-base-100 w-56 rounded-box shadow-sm"
-                popover="auto" id={popoverId} style={{
-                    positionAnchor: anchorName,
-                    position: "fixed",
-                    inset: "auto",
-                    margin: 0,
-                    bottom: "anchor(top)",
-                    left: "anchor(left)",
-                }}>
-                <ul className="menu bg-base-100 rounded-box w-full gap-2">
-                    <li><NavLink to="/profile"><User />自分のページへ</NavLink></li>
+    return (
+        <div className="flex gap-2 items-center border-base-200 border-1 rounded-full bg-base-100">
+            <details className="dropdown dropdown-top">
+                <summary
+                    className="btn btn-circle btn-ghost size-16 min-h-16 p-0"
+                    aria-label="メニューを開く"
+                >
+                    <Ellipsis className="pointer-events-none" />
+                </summary>
+                <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm gap-4">
+                    <li><NavLink to="/mypage"><User />自分のページへ</NavLink></li>
                     <li><NavLink to="/records"><NotebookPen />記録を見る</NavLink></li>
                     <li><NavLink to="/settings"><SettingsIcon />設定</NavLink></li>
                     <li>
@@ -37,9 +25,17 @@ export default function SettingsButton() {
                         </Form>
                     </li>
                 </ul>
-                <button className="btn join-item bg-base-100 btn-square w-full" popoverTarget={popoverId}>閉じる</button>
-
-            </div>
+            </details>
+            {!isHome && (
+                <button
+                    type="button"
+                    aria-label="ホームに戻る"
+                    className="btn btn-circle btn-ghost size-16 min-h-16 p-0"
+                    onClick={() => { navigate("/"); }}
+                >
+                    <House className="pointer-events-none" />
+                </button>
+            )}
         </div>
     )
 }

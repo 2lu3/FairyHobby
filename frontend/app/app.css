@@ -1,7 +1,9 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark, emerald;
 }
+
 
 
 @theme {
@@ -9,4 +11,9 @@
     --text-base: 20px;
     --text-lg: 24px;
     --text-xl: 28px;
+}
+
+@plugin "daisyui/theme" {
+    name: "emerald";
+    --color-base-content: oklch(48% 0.032 262);
 }

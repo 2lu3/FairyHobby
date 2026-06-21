@@ -17,12 +17,14 @@
     "isbot": "^5.1.36",
     "lucide-react": "^1.18.0",
     "react": "^19.2.6",
+    "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.6",
     "react-router": "7.16.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@react-router/dev": "7.16.0",
+    "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^22",
     "@types/react": "^19.2.14",

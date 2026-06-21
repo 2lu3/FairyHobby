@@ -9,6 +9,7 @@ export async function backendFetch(
     ...init,
     headers: {
       cookie: request.headers.get("cookie") ?? "",
+      "Content-Type": "application/json",
       ...(init.headers ?? {}),
     },
   })

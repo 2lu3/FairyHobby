@@ -16,6 +16,7 @@ async def test_create_activity(client, db_session, firebase_uid, logged_in_user)
         "name": "New Activity",
         "description": "New Activity Description",
         "price": 1500,
+        "duration_minutes": 90,
         "image_urls": ["https://example.com/1.jpg", "https://example.com/2.jpg"],
         "owner_store_id": str(store.id),
         "address": "Tokyo",
@@ -28,11 +29,13 @@ async def test_create_activity(client, db_session, firebase_uid, logged_in_user)
     assert body["name"] == "New Activity"
     assert body["description"] == "New Activity Description"
     assert body["price"] == 1500
+    assert body["duration_minutes"] == 90
     assert body["image_urls"] == payload["image_urls"]
     assert body["owner_store_id"] == str(store.id)
     assert body["address"] == "Tokyo"
     assert body["latitude"] == 35.6812
     assert body["longitude"] == 139.7671
+    assert body["reviews"] == []
 
     created = db_session.get(Activity, body["id"])
     assert created is not None
@@ -49,6 +52,7 @@ async def test_create_activity_store_not_found(client, db_session, firebase_uid)
             "name": "New Activity",
             "description": "Description",
             "price": 1000,
+            "duration_minutes": 60,
             "image_urls": [],
             "owner_store_id": str(uuid4()),
             "address": None,
@@ -77,6 +81,7 @@ async def test_create_activity_forbidden_when_not_store_owner(
             "name": "Hacked Activity",
             "description": "Hacked",
             "price": 1000,
+            "duration_minutes": 60,
             "image_urls": [],
             "owner_store_id": str(store.id),
             "address": None,
@@ -101,8 +106,10 @@ async def test_get_activity(client, db_session, firebase_uid):
     assert body["name"] == "New Activity"
     assert body["description"] == "New Activity Description"
     assert body["price"] == 1000
+    assert body["duration_minutes"] == 60
     assert body["id"] == str(activity.id)
     assert body["image_urls"] == ["https://example.com/1.jpg"]
+    assert body["reviews"] == []
 
 
 async def test_get_activity_not_found(client, db_session, firebase_uid):
@@ -126,6 +133,7 @@ async def test_update_activity(client, db_session, firebase_uid):
             name="Updated Activity",
             description="Updated Description",
             price=2000,
+            duration_minutes=120,
             address="Osaka",
             latitude=34.6937,
             longitude=135.5023,
@@ -136,6 +144,7 @@ async def test_update_activity(client, db_session, firebase_uid):
     assert body["name"] == "Updated Activity"
     assert body["description"] == "Updated Description"
     assert body["price"] == 2000
+    assert body["duration_minutes"] == 120
     assert body["address"] == "Osaka"
     assert body["latitude"] == 34.6937
     assert body["longitude"] == 135.5023
@@ -234,10 +243,12 @@ def _update_payload(**overrides) -> dict:
         "name": None,
         "description": None,
         "price": None,
+        "duration_minutes": None,
         "image_urls": None,
         "address": None,
         "latitude": None,
         "longitude": None,
+        "preference_text": None,
     }
     defaults.update(overrides)
     return defaults
@@ -286,6 +297,7 @@ def _seed_activity(session: Session, **overrides) -> Activity:
         name=overrides.get("name", "New Activity"),
         description=overrides.get("description", "New Activity Description"),
         price=overrides.get("price", 1000),
+        duration_minutes=overrides.get("duration_minutes", 60),
         owner_store_id=store.id,
         address=overrides.get("address"),
         latitude=overrides.get("latitude"),

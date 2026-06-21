@@ -8,13 +8,13 @@ type ContainerProps = {
 
 export  default function Container({ children, size = "md", className }: ContainerProps) {
     const sizeClass = {
-        sm: "max-w-xl",
-        md: "max-w-3xl",
-        lg: "max-w-5xl",
+        sm: "max-w-3xl",
+        md: "max-w-5xl",
+        lg: "max-w-7xl",
     }[size];
 
     return (
-        <div className={`mx-auto w-full ${sizeClass} ${className}`}>
+        <div className={`mx-auto w-full p-16 ${sizeClass} ${className}`}>
             {children}
         </div>
     )
