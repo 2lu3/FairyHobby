@@ -4,6 +4,10 @@ import type { Route } from "./+types/_auth.selection.$jobId";
 import { backendFetch } from "~/lib/fetcher.server";
 import Container from "~/component/Container";
 
+export const meta: Route.MetaFunction = () => [
+    { title: "おすすめを探しています | 妖精からの招待状" },
+];
+
 type RecommendationStatus = "pending" | "calculating" | "completed" | "failed";
 
 type RecommendationJobStatus = {

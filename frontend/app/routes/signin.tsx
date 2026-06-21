@@ -5,6 +5,9 @@ import { useAuthUser } from "~/lib/useAuthUser.client";
 import { registerUser, createSession } from "~/lib/auth.server";
 import Container from "~/component/Container";
 
+export const meta: Route.MetaFunction = () => [
+    { title: "新規登録 | 妖精からの招待状" },
+];
 
 export async function action({ request }: Route.ActionArgs) {
     const formData = await request.formData();

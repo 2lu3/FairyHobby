@@ -6,6 +6,10 @@ import type { Route } from "./+types/_auth._index";
 import type { FairyReadResponse } from "~/types/fairy";
 import FairyCard from "~/component/FairyCard";
 
+export const meta: Route.MetaFunction = () => [
+    { title: "妖精を選ぶ | 妖精からの招待状" },
+];
+
 export async function loader({ request }: Route.LoaderArgs) {
     const res = await backendFetch(request, "/fairies");
     const res_fairies: FairyReadResponse[] = await res.json();

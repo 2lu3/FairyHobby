@@ -7,6 +7,10 @@ import Container from "~/component/Container";
 import { createSession } from "~/lib/auth.server";  
 import type { Route } from "./+types/home";
 
+export const meta: Route.MetaFunction = () => [
+  { title: "妖精からの招待状" },
+];
+
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const token = formData.get("token");

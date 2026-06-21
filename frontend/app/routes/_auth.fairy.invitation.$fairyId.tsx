@@ -6,6 +6,10 @@ import { DayPicker } from "react-day-picker";
 import { Form, redirect, useNavigate, useRouteLoaderData } from "react-router";
 import type { loader as authLoader } from "./_auth";
 
+export const meta: Route.MetaFunction = () => [
+    { title: "妖精からの招待状" },
+];
+
 export async function loader({ request, params }: Route.LoaderArgs) {
     const { fairyId } = params;
     const res = await backendFetch(request, `/fairies/${fairyId}`);

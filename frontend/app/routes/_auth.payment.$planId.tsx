@@ -4,6 +4,10 @@ import type { Route } from "./+types/_auth.payment.$planId";
 import Container from "~/component/Container";
 import { backendFetch } from "~/lib/fetcher.server";
 
+export const meta: Route.MetaFunction = () => [
+    { title: "お支払い | 妖精からの招待状" },
+];
+
 type PlanItem = {
     activity_id: string;
 };

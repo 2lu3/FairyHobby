@@ -3,6 +3,10 @@ import type { Route } from "./+types/_auth.mypage";
 import Container from "~/component/Container";
 import { backendFetch } from "~/lib/fetcher.server";
 
+export const meta: Route.MetaFunction = () => [
+    { title: "マイページ | 妖精からの招待状" },
+];
+
 type PlanHistory = {
     id: string;
     user_id: string;

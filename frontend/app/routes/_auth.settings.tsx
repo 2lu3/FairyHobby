@@ -4,6 +4,9 @@ import type { Route } from "./+types/_auth.settings";
 import Container from "~/component/Container";
 import { backendFetch } from "~/lib/fetcher.server";
 
+export const meta: Route.MetaFunction = () => [
+    { title: "設定 | 妖精からの招待状" },
+];
 
 export async function loader({ request }: Route.LoaderArgs) {
     const res = await backendFetch(request, "/users/me");
