@@ -98,6 +98,11 @@ def _generate_recommendation(job_id: UUID, db_session: Session) -> None:
         db_session.refresh(recommendation_job)
         raise
 
-    recommendation_job.status = RecommendationStatus.COMPLETED
-    db_session.commit()
-    db_session.refresh(recommendation_job)
+    if recommendation_job.plan_id:
+        recommendation_job.status = RecommendationStatus.COMPLETED
+        db_session.commit()
+        db_session.refresh(recommendation_job)
+    else:
+        recommendation_job.status = RecommendationStatus.FAILED
+        db_session.commit()
+        db_session.refresh(recommendation_job)

@@ -16,6 +16,7 @@ from backend.activities.models import Activity, ActivityImage  # noqa: F401
 from backend.activity_reviews.models import ActivityReview  # noqa: F401
 from backend.fairies.models import Fairy  # noqa: F401
 from backend.plans.models import Plan, PlanItem  # noqa: F401
+from backend.plan_histories.models import PlanHistory  # noqa: F401
 from backend.recommendation_job.models import RecommendationJob  # noqa: F401
 
 # this is the Alembic Config object, which provides

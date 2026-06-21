@@ -5,7 +5,10 @@ import os
 from sqlmodel import Session
 
 from backend.database import engine
-from backend.fairies.service import create, delete, get_all
+from backend.fairies.service import create, delete, generate_embeddings, get_all
+from backend.fairies.models import Fairy  # noqa: F401
+from backend.activity_reviews.models import ActivityReview  # noqa: F401
+from backend.recommendation_job.models import RecommendationJob  # noqa: F401
 from backend.storage import init_storage_client
 
 logger = logging.getLogger(__name__)
@@ -116,6 +119,9 @@ def main():
                 fairy_names[name], prompt, image_bytes, image_content_type, db_session
             )
             logger.info(f"Created fairy: {fairy.id}")
+
+            generate_embeddings(fairy.id)
+            logger.info(f"Generated embeddings for fairy: {fairy.id}")
 
 
 if __name__ == "__main__":

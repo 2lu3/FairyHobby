@@ -11,6 +11,7 @@ from backend.fairies.router import router as fairies_router
 from backend.firebase import init_firebase_app
 from backend.logging import setup_logging
 from backend.middlewares import init_middlewares
+from backend.plan_histories.router import router as plan_histories_router
 from backend.plans.router import router as plans_router
 from backend.recommendation_job.router import router as recommendation_router
 from backend.storage import init_storage_client
@@ -39,6 +40,7 @@ app.include_router(stores_router)
 app.include_router(activities_router)
 app.include_router(activity_reviews_router)
 app.include_router(plans_router)
+app.include_router(plan_histories_router)
 app.include_router(fairies_router)
 app.include_router(recommendation_router)
 

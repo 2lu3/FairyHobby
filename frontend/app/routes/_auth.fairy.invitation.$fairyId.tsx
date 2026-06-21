@@ -1,5 +1,5 @@
 import { backendFetch } from "~/lib/fetcher.server";
-import type { Route } from "./+types/_auth.fairy.$fairyId";
+import type { Route } from "./+types/_auth.fairy.invitation.$fairyId";
 import Container from "~/component/Container";
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
@@ -18,10 +18,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+    const { fairyId } = params;
     const formData = await request.formData();
     const payload = {
+        fairy_id: fairyId,
         date: formData.get("date"),
-        budget: formData.get("budget"),
+        budget: Number(formData.get("budget")),
     }
 
     const res = await backendFetch(request, `/recommendation/jobs`, {
@@ -52,6 +54,13 @@ export default function Fairy({ loaderData }: Route.ComponentProps) {
         date !== null &&
         budget !== null;
 
+    const formatDate = (value: Date) => {
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, "0");
+        const day = String(value.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center">
             {errorMessage && <div className="alert alert-error">{error}</div>}
@@ -64,8 +73,8 @@ export default function Fairy({ loaderData }: Route.ComponentProps) {
                 </div>
                 {userAgreed ? (
                     <Form method="post">
-                        <input type="hidden" name="date" value={date?.toISOString() ?? ""} required />
-                        <input type="hidden" name="budget" value={budget?.toString() ?? ""} required />
+                        <input type="hidden" name="date" value={date ? formatDate(date) : ""} />
+                        <input type="hidden" name="budget" value={budget?.toString() ?? ""} />
                         <div className="flex justify-center gap-4">
                             <button type="button" className="btn btn-outline" onClick={() => navigate("/")}>やめる</button>
                             <button type="submit" className="btn btn-primary" disabled={!canAccept}>送信する</button>
