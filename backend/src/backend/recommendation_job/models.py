@@ -1,12 +1,22 @@
-from datetime import datetime
-from uuid import UUID
-from sqlmodel import Field, Relationship
-from backend.database import Base
+from datetime import date
 from enum import Enum
 from typing import TYPE_CHECKING
+from uuid import UUID
+
+from sqlalchemy.types import Enum as SAEnum
+from sqlmodel import Column, Field, Relationship
+
+from backend.database import Base
 
 if TYPE_CHECKING:
     from backend.fairies.models import Fairy
+
+
+class RecommendationStatus(str, Enum):
+    PENDING = "pending"
+    CALCULATING = "calculating"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class RecommendationJob(Base, table=True):
@@ -18,15 +28,19 @@ class RecommendationJob(Base, table=True):
     fairy: "Fairy" = Relationship(back_populates="recommendation_jobs")
     latitude: float
     longitude: float
-    start_date: datetime
-    end_date: datetime
+    date: date
     budget: int
 
-    status: "RecommendationStatus"
+    status: RecommendationStatus = Field(
+        default=RecommendationStatus.PENDING,
+        sa_column=Column(
+            SAEnum(
+                RecommendationStatus,
+                native_enum=False,
+                values_callable=lambda x: [e.value for e in x],
+            ),
+            nullable=False,
+        ),
+    )
 
-
-class RecommendationStatus(Enum):
-    PENDING = "pending"
-    CALCULATING = "calculating"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    plan_id: UUID | None = Field(default=None, foreign_key="plans.id")

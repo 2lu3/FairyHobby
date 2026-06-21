@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from uuid import UUID
+
+from pydantic import BaseModel
 
 from backend.plans.models import Plan
 
@@ -18,7 +19,6 @@ class PlanReadResponse(BaseModel):
     id: UUID
     name: str
     description: str
-    owner_user_id: UUID
     details: list[PlanItemSchema]
 
     @classmethod
@@ -27,7 +27,6 @@ class PlanReadResponse(BaseModel):
             id=plan.id,
             name=plan.name,
             description=plan.description,
-            owner_user_id=plan.owner_user_id,
             details=[
                 PlanItemSchema(activity_id=item.activity_id)
                 for item in sorted(plan.items, key=lambda i: i.position)

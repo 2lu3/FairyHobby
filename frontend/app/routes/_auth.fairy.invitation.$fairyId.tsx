@@ -28,8 +28,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     const payload = {
         latitude: formData.get("latitude"),
         longitude: formData.get("longitude"),
-        startDate: formData.get("startDate"),
-        endDate: formData.get("endDate"),
+        date: formData.get("date"),
         budget: formData.get("budget"),
     }
 
@@ -46,16 +45,13 @@ export default function Fairy({ loaderData }: Route.ComponentProps) {
     const { fairy, description, errorMessage } = loaderData;
     const [userAgreed, setUserAgreed] = useState<boolean>(false);
     const [location, setLocation] = useState<GeoCoordinates | null>(null);
-    const [startDate, setStartDate] = useState<Date | null>(null);
-    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [date, setDate] = useState<Date | null>(null);
     const [budget, setBudget] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(errorMessage);
 
     const canAccept =
         location !== null &&
-        startDate !== null &&
-        endDate !== null &&
-        startDate < endDate &&
+        date !== null &&
         budget !== null;
 
     const getLocation = () => {
@@ -92,14 +88,13 @@ export default function Fairy({ loaderData }: Route.ComponentProps) {
                 <div className="bg-[url('/paper.jpg')] bg-cover bg-center bg-no-repeat shadow-lg py-8 px-12">
                     {!userAgreed ? <FairyLetter fairyName={fairy.name} userName={user.display_name} />
                         :
-                        <UserLetter fairyName={fairy.name} userName={user.display_name} location={location} getLocation={getLocation} startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} budget={budget} setBudget={setBudget} />}
+                        <UserLetter fairyName={fairy.name} userName={user.display_name} location={location} getLocation={getLocation} date={date} setDate={setDate} budget={budget} setBudget={setBudget} />}
                 </div>
                 {userAgreed ? (
                     <Form method="post">
                         <input type="hidden" name="latitude" value={location?.latitude ?? ""} required />
                         <input type="hidden" name="longitude" value={location?.longitude ?? ""} required />
-                        <input type="hidden" name="startDate" value={startDate?.toISOString() ?? ""} required />
-                        <input type="hidden" name="endDate" value={endDate?.toISOString() ?? ""} required />
+                        <input type="hidden" name="date" value={date?.toISOString() ?? ""} required />
                         <input type="hidden" name="budget" value={budget?.toString() ?? ""} required />
                         <div className="flex justify-center gap-4">
                             <button type="button" className="btn btn-outline" onClick={() => navigate("/")}>やめる</button>
@@ -149,15 +144,13 @@ interface UserLetterProps {
     userName: string;
     location: GeoCoordinates | null;
     getLocation: () => void;
-    startDate: Date | null;
-    endDate: Date | null;
-    setStartDate: (startDate: Date) => void;
-    setEndDate: (endDate: Date) => void;
+    date: Date | null;
+    setDate: (date: Date) => void;
     budget: number | null;
     setBudget: (budget: number | null) => void;
 }
 
-function UserLetter({ fairyName, userName, location, getLocation, startDate, endDate, setStartDate, setEndDate, budget, setBudget }: UserLetterProps) {
+function UserLetter({ fairyName, userName, location, getLocation, date, setDate, budget, setBudget }: UserLetterProps) {
     return (
         <article className="prose prose-neutral max-w-none">
             <h1 className="text-center font-normal tracking-wide">
@@ -181,10 +174,8 @@ function UserLetter({ fairyName, userName, location, getLocation, startDate, end
             </p>
             <p>
                 ご都合をお聞きくださるのでしたら、
-                <CalendarPicker id="start" date={startDate} setDate={setStartDate} />
-                から
-                <CalendarPicker id="end" date={endDate} setDate={setEndDate} />
-                のあいだでしたら、いつでも構いません。
+                <CalendarPicker id="date" date={date} setDate={setDate} />
+                でしたら、構いません。
             </p>
             <p>
                 また、予算は
@@ -196,7 +187,7 @@ function UserLetter({ fairyName, userName, location, getLocation, startDate, end
                 />円ほどです。
             </p>
             <p>
-                もしよろしければ、その範囲でおすすめをお教えいただけますと幸いです。
+                もしよろしければ、その日でおすすめをお教えいただけますと幸いです。
                 お忙しいところ恐れ入りますが、どうぞよろしくお願いいたします。
             </p>
             <p className="mt-12 text-right not-prose:text-sm not-prose:tracking-widest">

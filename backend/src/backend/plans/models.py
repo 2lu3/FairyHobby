@@ -1,12 +1,13 @@
-from sqlmodel import Field, Relationship
 from uuid import UUID
+
+from sqlmodel import Field, Relationship
 
 from backend.database import Base
 
 
 class Plan(Base, table=True):
     """
-    複数のActivityをPlanItemとして組み合わせる
+    1日分のActivityをPlanItemとして組み合わせる
     それぞれのActivityのStoreは同じでなくて良い
     """
 
@@ -14,8 +15,6 @@ class Plan(Base, table=True):
 
     name: str
     description: str
-
-    owner_user_id: UUID = Field(foreign_key="users.id")
 
     items: list["PlanItem"] = Relationship(
         back_populates="plan",

@@ -4,17 +4,11 @@ from uuid import UUID
 from sqlmodel import Session
 
 from backend.activities.models import Activity
-from backend.exceptions import NotFoundError, PermissionDeniedError
+from backend.exceptions import NotFoundError
 from backend.plans.models import Plan, PlanItem
 from backend.plans.schemas import PlanCreateRequest, PlanItemSchema, PlanUpdateRequest
-from backend.users.models import User
 
 logger = logging.getLogger(__name__)
-
-
-def _check_plan_owner(plan: Plan, current_user: User) -> None:
-    if plan.owner_user_id != current_user.id:
-        raise PermissionDeniedError()
 
 
 def _validate_activities_exist(
@@ -26,13 +20,12 @@ def _validate_activities_exist(
             raise NotFoundError()
 
 
-def create(in_plan: PlanCreateRequest, current_user: User, db_session: Session) -> Plan:
+def create(in_plan: PlanCreateRequest, db_session: Session) -> Plan:
     _validate_activities_exist(in_plan.details, db_session)
 
     plan = Plan(
         name=in_plan.name,
         description=in_plan.description,
-        owner_user_id=current_user.id,
     )
     for position, item in enumerate(in_plan.details):
         plan.items.append(
@@ -45,7 +38,7 @@ def create(in_plan: PlanCreateRequest, current_user: User, db_session: Session) 
     db_session.add(plan)
     db_session.commit()
     db_session.refresh(plan)
-    logger.info("Created plan %s by %s", plan.id, current_user.id)
+    logger.info("Created plan %s", plan.id)
     return plan
 
 
@@ -59,14 +52,11 @@ def get(plan_id: UUID, db_session: Session) -> Plan:
 def update(
     plan_id: UUID,
     in_plan: PlanUpdateRequest,
-    current_user: User,
     db_session: Session,
 ) -> Plan:
     plan = db_session.get(Plan, plan_id)
     if not plan:
         raise NotFoundError()
-
-    _check_plan_owner(plan, current_user)
 
     if in_plan.name is not None:
         plan.name = in_plan.name
@@ -88,18 +78,16 @@ def update(
     db_session.add(plan)
     db_session.commit()
     db_session.refresh(plan)
-    logger.info("Updated plan %s by %s", plan.id, current_user.id)
+    logger.info("Updated plan %s", plan.id)
     return plan
 
 
-def delete(plan_id: UUID, current_user: User, db_session: Session) -> Plan:
+def delete(plan_id: UUID, db_session: Session) -> Plan:
     plan = db_session.get(Plan, plan_id)
     if not plan:
         raise NotFoundError()
 
-    _check_plan_owner(plan, current_user)
-
     db_session.delete(plan)
     db_session.commit()
-    logger.info("Deleted plan %s by %s", plan_id, current_user.id)
+    logger.info("Deleted plan %s", plan_id)
     return plan

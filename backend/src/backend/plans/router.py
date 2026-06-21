@@ -34,10 +34,10 @@ router = APIRouter(
 )
 def create_plan(
     in_plan: PlanCreateRequest,
-    current_user: User = Depends(get_current_user),
+    _: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ) -> PlanReadResponse:
-    plan = create(in_plan, current_user, db_session)
+    plan = create(in_plan, db_session)
     return PlanReadResponse.from_plan(plan)
 
 
@@ -82,10 +82,10 @@ def get_plan(
 def update_plan(
     plan_id: UUID,
     in_plan: PlanUpdateRequest,
-    current_user: User = Depends(get_current_user),
+    _: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ) -> PlanReadResponse:
-    plan = update(plan_id, in_plan, current_user, db_session)
+    plan = update(plan_id, in_plan, db_session)
     return PlanReadResponse.from_plan(plan)
 
 
@@ -107,9 +107,9 @@ def update_plan(
 )
 def delete_plan(
     plan_id: UUID,
-    current_user: User = Depends(get_current_user),
+    _: User = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ) -> PlanReadResponse:
     plan = get(plan_id, db_session)
-    delete(plan_id, current_user, db_session)
+    delete(plan_id, db_session)
     return PlanReadResponse.from_plan(plan)
