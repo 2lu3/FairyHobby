@@ -1,10 +1,6 @@
-import { useRouteLoaderData, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
-import Header from "~/component/Header";
-import type { loader as authLoader } from "./_auth";
 import Container from "~/component/Container";
-import  SettingsButton from "~/component/SettingsButton";
-import Footer from "~/component/Footer";
 import { backendFetch } from "~/lib/fetcher.server";
 import type { Route } from "./+types/_auth._index";
 import type { FairyReadResponse } from "~/types/fairy";
@@ -27,30 +23,15 @@ export default function Home(
 ) {
     const { fairies } = loaderData;
 
-    const { user } = useRouteLoaderData("routes/_auth") as Exclude<
-        Awaited<ReturnType<typeof authLoader>>,
-        Response
-    >;
-
     const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col">
-            <Container className="flex-1 min-h-screen">
-                <div className="mt-8">
-                    <Header name={user.display_name} icon={user.icon} />
-                </div>
-                <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                    {fairies.map((fairy) => (
-                        <FairyCard key={fairy.id} image_url={fairy.image_url} name={fairy.name} description={fairy.description} onClick={() => { navigate(`/fairy/invitation/${fairy.id}`); }} />
-                    ))}
-                </main>
-            </Container>
-
-            <Footer />
-            <div className="fixed bottom-8 left-8 z-50">
-                <SettingsButton />
+        <Container className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                {fairies.map((fairy) => (
+                    <FairyCard key={fairy.id} image_url={fairy.image_url} name={fairy.name} description={fairy.description} onClick={() => { navigate(`/fairy/invitation/${fairy.id}`); }} />
+                ))}
             </div>
-        </div>
+        </Container>
     );
 }

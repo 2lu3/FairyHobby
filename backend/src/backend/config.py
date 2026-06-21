@@ -42,6 +42,9 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str
 
+    # プラン名・説明の生成や嗜好プロファイル生成に利用するチャットモデル
+    OPENAI_CHAT_MODEL: str = "gpt-4o-mini"
+
     # devの場合のみ設定する
     ADMIN_USER_ID: str | None = None
     ADMIN_STORE_ID: str | None = None

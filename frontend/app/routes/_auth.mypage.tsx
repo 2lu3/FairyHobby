@@ -102,7 +102,7 @@ export default function MyPage({ loaderData }: Route.ComponentProps) {
     const { histories, errorMessage } = loaderData;
 
     return (
-        <Container className="min-h-screen">
+        <Container className="flex-1">
             <section className="mt-24">
                 <h1 className="text-2xl font-bold">マイページ</h1>
                 <p className="mt-1 text-base-content/70">

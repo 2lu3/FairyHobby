@@ -97,7 +97,7 @@ export default function Payment({ loaderData, actionData }: Route.ComponentProps
     const [cvc, setCvc] = useState("");
 
     return (
-        <Container size="sm" className="min-h-screen flex items-center">
+        <Container className="flex-1 flex items-center">
             <div className="card w-full bg-base-100 shadow-xl">
                 <div className="card-body">
                     <h1 className="text-2xl font-bold">お支払い</h1>

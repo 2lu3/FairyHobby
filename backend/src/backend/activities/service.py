@@ -119,7 +119,7 @@ def generate_preference_and_embeddings(activity_id: UUID) -> None:
         client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=settings.OPENAI_CHAT_MODEL,
             messages=[
                 {
                     "role": "system",

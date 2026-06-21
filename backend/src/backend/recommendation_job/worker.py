@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from uuid import UUID
 
 import numpy as np
@@ -5,25 +6,35 @@ from ortools.sat.python import cp_model
 from sqlmodel import Session, select
 
 from backend.activities.models import Activity
+from backend.database import engine
 from backend.fairies.models import Fairy
 from backend.recommendation_job.models import RecommendationJob
 
 
 class Optimizer:
-    def __init__(self, job: RecommendationJob, db_session: Session):
+    def __init__(self, job: RecommendationJob, db_session: Session | None = None):
         self.job: RecommendationJob = job
-        self.db_session: Session = db_session
+        # db_session が渡されればそれを使い、なければ build_model 内で
+        # 自前の短命なセッションを開く（バックグラウンドタスク用）。
+        self.db_session: Session | None = db_session
         self.fairy: Fairy | None = None
         self.activities: list[Activity] = []
         self.model = cp_model.CpModel()
         self.x: dict[UUID, cp_model.IntVar] = {}
 
     def build_model(self) -> None:
-        self.fairy = self.db_session.get(Fairy, self.job.fairy_id)
-        if not self.fairy:
-            raise ValueError("Fairy not found")
+        # モデル構築に必要なデータ取得のときだけ DB セッションを開く。
+        session_ctx = (
+            nullcontext(self.db_session)
+            if self.db_session is not None
+            else Session(engine)
+        )
+        with session_ctx as db_session:
+            self.fairy = db_session.get(Fairy, self.job.fairy_id)
+            if not self.fairy:
+                raise ValueError("Fairy not found")
 
-        self.activities = list(self.db_session.exec(select(Activity)).all())
+            self.activities = list(db_session.exec(select(Activity)).all())
 
         for activity in self.activities:
             self.x[activity.id] = self.model.NewBoolVar(f"x_{activity.id}")

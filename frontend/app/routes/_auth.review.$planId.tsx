@@ -1,4 +1,4 @@
-import { Form } from "react-router";
+import { Form, useNavigation } from "react-router";
 import type { Route } from "./+types/_auth.review.$planId";
 import Container from "~/component/Container";
 import { backendFetch } from "~/lib/fetcher.server";
@@ -29,6 +29,10 @@ type Activity = {
     reviews: ActivityReview[];
 };
 
+type CurrentUser = {
+    id: string;
+};
+
 export async function loader({ request, params }: Route.LoaderArgs) {
     const { planId } = params;
 
@@ -37,10 +41,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         return {
             plan: null,
             activities: [] as Activity[],
+            currentUserId: null as string | null,
             errorMessage: "プランが見つかりませんでした",
         };
     }
     const plan = (await planRes.json()) as Plan;
+
+    const meRes = await backendFetch(request, "/users/me");
+    const currentUserId = meRes.ok
+        ? ((await meRes.json()) as CurrentUser).id
+        : null;
 
     const activityResults = await Promise.all(
         plan.details.map(async (item) => {
@@ -58,13 +68,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         (activity): activity is Activity => activity !== null,
     );
 
-    return { plan, activities, errorMessage: null };
+    return { plan, activities, currentUserId, errorMessage: null };
 }
 
 export async function action({ request }: Route.ActionArgs) {
     const formData = await request.formData();
     const activityId = formData.get("activity_id");
     const text = formData.get("text");
+    const reviewId = formData.get("review_id");
 
     if (typeof activityId !== "string" || typeof text !== "string") {
         return { errorMessage: "入力内容が不正です", activityId: null };
@@ -73,10 +84,16 @@ export async function action({ request }: Route.ActionArgs) {
         return { errorMessage: "レビューを入力してください", activityId };
     }
 
-    const res = await backendFetch(request, "/activity-reviews/", {
-        method: "POST",
-        body: JSON.stringify({ activity_id: activityId, text }),
-    });
+    const res =
+        typeof reviewId === "string" && reviewId.length > 0
+            ? await backendFetch(request, `/activity-reviews/${reviewId}`, {
+                  method: "PATCH",
+                  body: JSON.stringify({ text }),
+              })
+            : await backendFetch(request, "/activity-reviews/", {
+                  method: "POST",
+                  body: JSON.stringify({ activity_id: activityId, text }),
+              });
     if (!res.ok) {
         return { errorMessage: "レビューの投稿に失敗しました", activityId };
     }
@@ -88,10 +105,12 @@ export default function Review({
     loaderData,
     actionData,
 }: Route.ComponentProps) {
-    const { plan, activities, errorMessage } = loaderData;
+    const { plan, activities, currentUserId, errorMessage } = loaderData;
+    const navigation = useNavigation();
+    const isLoadingReviews = navigation.state === "loading";
 
     return (
-        <Container className="min-h-screen">
+        <Container className="flex-1">
             <section className="mt-24">
                 <h1 className="text-2xl font-bold">レビューを投稿する</h1>
                 {plan && (
@@ -107,6 +126,13 @@ export default function Review({
                         const isTarget = actionData?.activityId === activity.id;
                         const succeeded = isTarget && !actionData?.errorMessage;
                         const failed = isTarget && !!actionData?.errorMessage;
+
+                        const existingReview = currentUserId
+                            ? activity.reviews.find(
+                                  (review) =>
+                                      review.owner_user_id === currentUserId,
+                              )
+                            : undefined;
 
                         return (
                             <div
@@ -139,16 +165,37 @@ export default function Review({
                                             name="activity_id"
                                             value={activity.id}
                                         />
+                                        {existingReview && (
+                                            <input
+                                                type="hidden"
+                                                name="review_id"
+                                                value={existingReview.id}
+                                            />
+                                        )}
                                         <fieldset className="fieldset">
                                             <legend className="fieldset-legend">
                                                 レビュー
                                             </legend>
-                                            <textarea
-                                                name="text"
-                                                rows={4}
-                                                placeholder="体験した感想を入力してください"
-                                                className="textarea textarea-bordered w-full"
-                                            />
+                                            {isLoadingReviews ? (
+                                                <div className="flex w-full justify-center py-6">
+                                                    <span className="loading loading-spinner loading-md"></span>
+                                                </div>
+                                            ) : (
+                                                <textarea
+                                                    key={
+                                                        existingReview?.id ??
+                                                        "new"
+                                                    }
+                                                    name="text"
+                                                    rows={4}
+                                                    defaultValue={
+                                                        existingReview?.text ??
+                                                        ""
+                                                    }
+                                                    placeholder="体験した感想を入力してください"
+                                                    className="textarea textarea-bordered w-full"
+                                                />
+                                            )}
                                         </fieldset>
 
                                         {failed && (
@@ -158,7 +205,7 @@ export default function Review({
                                         )}
                                         {succeeded && (
                                             <p className="text-success">
-                                                レビューを投稿しました
+                                                レビューを保存しました
                                             </p>
                                         )}
 
@@ -167,7 +214,9 @@ export default function Review({
                                                 type="submit"
                                                 className="btn btn-primary"
                                             >
-                                                投稿する
+                                                {existingReview
+                                                    ? "更新する"
+                                                    : "投稿する"}
                                             </button>
                                         </div>
                                     </Form>

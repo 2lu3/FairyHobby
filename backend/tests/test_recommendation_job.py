@@ -12,7 +12,9 @@ from backend.plans.models import Plan
 from backend.recommendation_job.models import RecommendationJob, RecommendationStatus
 from backend.recommendation_job.schemas import RecommendationJobCreateRequest
 from backend.recommendation_job.service import (
-    _generate_recommendation,
+    _mark_failed,
+    _save_result,
+    _start_calculation,
     create_job,
     get_job_for_user,
 )
@@ -30,6 +32,19 @@ def mock_generate_recommendation(monkeypatch):
 
     monkeypatch.setattr(
         "backend.recommendation_job.router.generate_recommendation", _noop
+    )
+
+
+@pytest.fixture(autouse=True)
+def mock_plan_name_generation(monkeypatch):
+    """プラン名・説明の LLM 生成をテスト中は固定値に差し替える。"""
+
+    def _fake(activities, fairy):
+        return "テストプラン", "テスト用のプラン説明"
+
+    monkeypatch.setattr(
+        "backend.recommendation_job.service._generate_plan_name_and_description",
+        _fake,
     )
 
 
@@ -111,14 +126,20 @@ def test_generate_recommendation_success(db_session: Session, logged_in_user: Us
         budget=10000,
     )
 
-    _generate_recommendation(job.id, db_session)
+    recommendation_job = _start_calculation(job.id, db_session)
+    assert recommendation_job is not None
+    optimizer = Optimizer(recommendation_job, db_session)
+    optimizer.build_model()
+    activities = optimizer.run()
+    _save_result(job.id, activities, db_session)
 
     db_session.refresh(job)
     assert job.status == RecommendationStatus.COMPLETED
     assert job.plan_id is not None
     plan = db_session.get(Plan, job.plan_id)
     assert plan is not None
-    assert plan.name == "妖精が選んだプラン"
+    assert plan.name == "テストプラン"
+    assert plan.description == "テスト用のプラン説明"
     assert len(plan.items) >= 1
 
 
@@ -134,8 +155,13 @@ def test_generate_recommendation_fails_on_optimizer_error(
 
     monkeypatch.setattr(Optimizer, "build_model", _raise)
 
+    recommendation_job = _start_calculation(job.id, db_session)
+    assert recommendation_job is not None
+    optimizer = Optimizer(recommendation_job, db_session)
+
     with pytest.raises(RuntimeError, match="optimization failed"):
-        _generate_recommendation(job.id, db_session)
+        optimizer.build_model()
+    _mark_failed(job.id, db_session)
 
     db_session.refresh(job)
     assert job.status == RecommendationStatus.FAILED
@@ -173,8 +199,9 @@ def test_generate_recommendation_skips_non_pending(
         plan_id=existing_plan.id,
     )
 
-    _generate_recommendation(job.id, db_session)
+    result = _start_calculation(job.id, db_session)
 
+    assert result is None
     db_session.refresh(job)
     assert job.status == RecommendationStatus.COMPLETED
     assert job.plan_id == existing_plan.id

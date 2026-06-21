@@ -62,9 +62,9 @@ export default function Fairy({ loaderData }: Route.ComponentProps) {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-center">
             {errorMessage && <div className="alert alert-error">{error}</div>}
-            <Container size="sm" className="flex flex-col gap-12">
+            <Container className="flex flex-col gap-12">
                 <h1 className="text-center text-xl">招待状を受け取りますか？</h1>
                 <div className="bg-[url('/paper.jpg')] bg-cover bg-center bg-no-repeat shadow-lg py-8 px-12">
                     {!userAgreed ? <FairyLetter fairyName={fairy.name} userName={user.display_name} />

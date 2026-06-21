@@ -1,20 +1,13 @@
 
 
 type ContainerProps = {
-    size?: "sm" | "md" | "lg";
     children: React.ReactNode;
     className?: string;
 }
 
-export  default function Container({ children, size = "md", className }: ContainerProps) {
-    const sizeClass = {
-        sm: "max-w-3xl",
-        md: "max-w-5xl",
-        lg: "max-w-7xl",
-    }[size];
-
+export  default function Container({ children, className }: ContainerProps) {
     return (
-        <div className={`mx-auto w-full p-16 ${sizeClass} ${className}`}>
+        <div className={`mx-auto w-full max-w-5xl p-16 ${className}`}>
             {children}
         </div>
     )

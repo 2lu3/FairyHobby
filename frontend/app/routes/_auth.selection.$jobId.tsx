@@ -3,8 +3,6 @@ import { useNavigate, useRevalidator } from "react-router";
 import type { Route } from "./+types/_auth.selection.$jobId";
 import { backendFetch } from "~/lib/fetcher.server";
 import Container from "~/component/Container";
-import Footer from "~/component/Footer";
-import SettingsButton from "~/component/SettingsButton";
 
 type RecommendationStatus = "pending" | "calculating" | "completed" | "failed";
 
@@ -94,8 +92,7 @@ export default function FairySelection({ loaderData }: Route.ComponentProps) {
     }, [isFinished, revalidator]);
 
     return (
-        <div className="flex flex-col">
-            <Container size="sm" className="flex-1 min-h-screen">
+            <Container className="flex-1">
                 <h1 className="text-xl font-semibold">プランを選ぶ</h1>
             {errorMessage && <p className="mt-4 text-error">{errorMessage}</p>}
             {job && <p className="mt-4">ステータス: {job.status}</p>}
@@ -169,11 +166,5 @@ export default function FairySelection({ loaderData }: Route.ComponentProps) {
                 </div>
             )}
             </Container>
-
-            <Footer />
-            <div className="fixed bottom-8 left-8 z-50">
-                <SettingsButton />
-            </div>
-        </div>
     );
 }

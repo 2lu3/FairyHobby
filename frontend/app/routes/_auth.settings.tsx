@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { Form, redirect } from "react-router";
 import type { Route } from "./+types/_auth.settings";
 import Container from "~/component/Container";
-import Footer from "~/component/Footer";
 import { backendFetch } from "~/lib/fetcher.server";
-import SettingsButton from "~/component/SettingsButton";
 
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -46,8 +44,7 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
     }, [loaderData.displayName]);
 
     return (
-        <div>
-            <Container className="min-h-screen flex flex-col gap-12">
+            <Container className="flex-1 flex flex-col gap-12">
                 <section className="mt-24 border-b border-base-300 pb-4">
                     <h1>設定</h1>
                 </section>
@@ -77,10 +74,5 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
                     </fieldset>
                 </section>
             </Container>
-            <Footer />
-            <div className="fixed bottom-8 left-8 z-50">
-                <SettingsButton />
-            </div>
-        </div >
     )
 }
