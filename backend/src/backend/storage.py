@@ -1,7 +1,10 @@
 import logging
+import time
 from datetime import timedelta
+from urllib.parse import quote
 
 import google.auth
+from google.auth.credentials import AnonymousCredentials
 from google.auth.transport import requests
 from google.cloud import storage
 from google.oauth2 import service_account
@@ -17,12 +20,44 @@ def init_storage_client():
     global _storage_client
     if _storage_client is None:
         try:
-            _storage_client = storage.Client()
+            if settings.STORAGE_EMULATOR_HOST:
+                # ローカル: fake-gcs-server に匿名認証で接続する
+                _storage_client = storage.Client(
+                    project=settings.GOOGLE_CLOUD_PROJECT_ID,
+                    credentials=AnonymousCredentials(),
+                )
+                _ensure_bucket(_storage_client)
+            else:
+                _storage_client = storage.Client()
         except Exception:
             logger.critical("Failed to initialize Cloud Storage client")
             raise
         logger.info("Cloud Storage client initialized")
     return _storage_client
+
+
+def _ensure_bucket(client: storage.Client, retries: int = 30) -> None:
+    """エミュレータ上にバケットが無ければ作成する。
+
+    コンテナ起動直後は fake-gcs-server がまだ応答しないことがあるため、
+    接続できるまで数回リトライする。
+    """
+    bucket_name = settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
+    last_error: Exception | None = None
+    for attempt in range(retries):
+        try:
+            bucket = client.bucket(bucket_name)
+            if not bucket.exists():
+                client.create_bucket(bucket)
+                logger.info("Created bucket %s on storage emulator", bucket_name)
+            return
+        except Exception as e:  # noqa: BLE001 - エミュレータ起動待ちのため握りつぶす
+            last_error = e
+            logger.info(
+                "Waiting for storage emulator (attempt %d/%d)", attempt + 1, retries
+            )
+            time.sleep(1)
+    raise RuntimeError("Storage emulator is not reachable") from last_error
 
 
 def get_client():
@@ -39,6 +74,16 @@ def get_bucket():
 def get_presigned_url(
     file_path: str, expiration: timedelta = timedelta(hours=1)
 ) -> str:
+    if settings.STORAGE_EMULATOR_HOST:
+        # ローカル: fake-gcs-server は署名なしでオブジェクトを配信できるため、
+        # ブラウザから到達可能な公開ダウンロードURLをそのまま返す。
+        base = (settings.GCS_PUBLIC_ENDPOINT or settings.STORAGE_EMULATOR_HOST).rstrip(
+            "/"
+        )
+        bucket_name = settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
+        encoded_path = quote(file_path, safe="")
+        return f"{base}/storage/v1/b/{bucket_name}/o/{encoded_path}?alt=media"
+
     bucket = get_bucket()
     blob = bucket.blob(file_path)
 

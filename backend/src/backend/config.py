@@ -27,6 +27,16 @@ class Settings(BaseSettings):
 
     GOOGLE_CLOUD_STORAGE_BUCKET_NAME: str = "fairyhobby"
 
+    # ローカル開発用エミュレータ設定 (本番では未設定)
+    # 設定されている場合、Cloud Storage の代わりに fake-gcs-server を利用する。
+    # google-cloud-storage クライアントは環境変数 STORAGE_EMULATOR_HOST を自動参照する。
+    STORAGE_EMULATOR_HOST: str | None = None
+    # ブラウザから到達可能な fake-gcs-server のエンドポイント (画像URLの生成に利用)
+    GCS_PUBLIC_ENDPOINT: str | None = None
+    # 設定されている場合、Firebase Auth Emulator を利用する。
+    # firebase-admin は環境変数 FIREBASE_AUTH_EMULATOR_HOST を自動参照する。
+    FIREBASE_AUTH_EMULATOR_HOST: str | None = None
+
     @computed_field
     @property
     def SQLMODEL_DATABASE_URL(self) -> str:

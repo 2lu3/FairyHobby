@@ -4,9 +4,13 @@ from uuid import UUID
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlmodel import Session, select
 
-from backend.activities.models import Activity  # noqa: F401
+from backend.activities.models import Activity, ActivityImage  # noqa: F401
 from backend.activity_reviews.models import ActivityReview  # noqa: F401
 from backend.database import engine
+from backend.fairies.models import Fairy  # noqa: F401
+from backend.plan_histories.models import PlanHistory  # noqa: F401
+from backend.plans.models import Plan, PlanItem  # noqa: F401
+from backend.recommendation_job.models import RecommendationJob  # noqa: F401
 from backend.stores.models import Store
 from backend.stores.schemas import StoreCreateRequest
 from backend.stores.service import create

@@ -6,10 +6,17 @@ from uuid import UUID
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlmodel import Session
 
+from backend.activities.models import Activity, ActivityImage  # noqa: F401
 from backend.activities.schemas import ActivityCreateRequest
 from backend.activities.service import create, generate_preference_and_embeddings
 from backend.activity_reviews.models import ActivityReview  # noqa: F401
 from backend.database import engine
+from backend.fairies.models import Fairy  # noqa: F401
+from backend.plan_histories.models import PlanHistory  # noqa: F401
+from backend.plans.models import Plan, PlanItem  # noqa: F401
+from backend.recommendation_job.models import RecommendationJob  # noqa: F401
+from backend.stores.models import Store  # noqa: F401
+from backend.users.models import User  # noqa: F401
 from backend.users.service import get
 
 logging.basicConfig(level=logging.INFO)

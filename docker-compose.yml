@@ -1,0 +1,116 @@
+# ローカル開発用フルスタック構成
+# Google Cloud (Cloud SQL / Cloud Storage / Firebase Auth) をすべてローカルのコンテナで代替する。
+#   db            : PostgreSQL (Cloud SQL の代替)
+#   gcs           : fake-gcs-server (Cloud Storage の代替)
+#   firebase-auth : Firebase Auth Emulator (Firebase Authentication の代替)
+#   backend       : FastAPI アプリ
+#   frontend      : react-router (vite) dev サーバ
+#
+# 秘密情報 (OPENAI_API_KEY / SESSION_SECRET_KEY) はルートの .env から読み込む。
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fairyhobby
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fairyhobby"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  gcs:
+    image: fsouza/fake-gcs-server:latest
+    command:
+      - "-scheme"
+      - "http"
+      - "-host"
+      - "0.0.0.0"
+      - "-port"
+      - "4443"
+      - "-public-host"
+      - "localhost:4443"
+      - "-data"
+      - "/data"
+    ports:
+      - "4443:4443"
+    volumes:
+      - gcs_data:/data
+
+  firebase-auth:
+    build:
+      context: ./firebase
+    ports:
+      - "9099:9099" # Auth Emulator
+      - "4000:4000" # Emulator UI
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      APP_ENV: dev
+      SESSION_SECRET_KEY: ${SESSION_SECRET_KEY:-local-dev-session-secret}
+      # DB (ローカル PostgreSQL)
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fairyhobby
+      # Google Cloud 関連 (本番のフィールドはローカルではダミー値で良い)
+      GOOGLE_CLOUD_PROJECT_ID: fairyhobby
+      GOOGLE_CLOUD_SQL_REGION: local
+      GOOGLE_CLOUD_SQL_INSTANCE_NAME: local
+      GOOGLE_CLOUD_STORAGE_BUCKET_NAME: fairyhobby
+      # Cloud Storage エミュレータ (fake-gcs-server)
+      STORAGE_EMULATOR_HOST: http://gcs:4443
+      GCS_PUBLIC_ENDPOINT: http://localhost:4443
+      # Firebase Auth エミュレータ
+      FIREBASE_AUTH_EMULATOR_HOST: firebase-auth:9099
+      # フロントエンド (CORS 許可オリジン)
+      FRONTEND_URL: http://localhost:5173
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    command:
+      - "sh"
+      - "-c"
+      - "uv run alembic upgrade head && uv run fastapi run src/backend/main.py --host 0.0.0.0 --port 8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      gcs:
+        condition: service_started
+      firebase-auth:
+        condition: service_started
+    restart: on-failure
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      # SSR (サーバ側) から backend へアクセスするための URL
+      BACKEND_URL: http://backend:8080
+      # Firebase (ブラウザ側) はエミュレータに接続する
+      VITE_USE_FIREBASE_EMULATOR: "true"
+      VITE_FIREBASE_AUTH_EMULATOR_URL: http://localhost:9099
+      VITE_FIREBASE_API_KEY: local-dev-api-key
+      VITE_FIREBASE_AUTH_DOMAIN: localhost
+      VITE_FIREBASE_PROJECT_ID: fairyhobby
+      VITE_FIREBASE_STORAGE_BUCKET: fairyhobby
+      VITE_FIREBASE_MESSAGING_SENDER_ID: "000000000000"
+      VITE_FIREBASE_APP_ID: local-dev-app-id
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
+  gcs_data:

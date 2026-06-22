@@ -2,6 +2,8 @@ import logging
 
 import firebase_admin
 
+from backend.config import settings
+
 logger = logging.getLogger(__name__)
 
 _firebase_app: firebase_admin.App | None = None
@@ -12,7 +14,15 @@ def init_firebase_app() -> None:
     if _firebase_app is not None:
         return
     try:
-        _firebase_app = firebase_admin.initialize_app()
+        if settings.FIREBASE_AUTH_EMULATOR_HOST:
+            # ローカル: Firebase Auth Emulator を利用する。
+            # firebase-admin は環境変数 FIREBASE_AUTH_EMULATOR_HOST を自動参照するため、
+            # 認証情報は不要。projectId のみ明示する。
+            _firebase_app = firebase_admin.initialize_app(
+                options={"projectId": settings.GOOGLE_CLOUD_PROJECT_ID}
+            )
+        else:
+            _firebase_app = firebase_admin.initialize_app()
     except Exception:
         logger.critical("Failed to initialize Firebase app")
         raise
