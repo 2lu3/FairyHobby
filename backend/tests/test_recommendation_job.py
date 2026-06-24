@@ -19,7 +19,6 @@ from backend.recommendation_job.service import (
     get_job_for_user,
 )
 from backend.recommendation_job.worker import Optimizer
-from backend.stores.models import Store
 from backend.users.models import User
 
 
@@ -341,18 +340,6 @@ def _seed_user(session: Session, **overrides) -> User:
     return user
 
 
-def _seed_store(session: Session, owner_user: User, **overrides) -> Store:
-    store = Store(
-        name=overrides.get("name", "Test Store"),
-        description=overrides.get("description", "Test Store Description"),
-        owner_user_id=owner_user.id,
-    )
-    session.add(store)
-    session.commit()
-    session.refresh(store)
-    return store
-
-
 def _seed_fairy(session: Session, **overrides) -> Fairy:
     fairy = Fairy(
         name=overrides.get("name", f"fairy-{uuid4()}"),
@@ -373,14 +360,13 @@ def _seed_activity(session: Session, **overrides) -> Activity:
         firebase_uid=overrides.pop("firebase_uid", f"store-owner-{uuid4()}"),
         email=overrides.pop("email", f"owner-{uuid4()}@example.com"),
     )
-    store = _seed_store(session, user)
     image_urls = overrides.pop("image_urls", ["https://example.com/1.jpg"])
     activity = Activity(
         name=overrides.get("name", "Test Activity"),
         description=overrides.get("description", "Test Activity Description"),
         price=overrides.get("price", 1000),
         duration_minutes=overrides.get("duration_minutes", 60),
-        owner_store_id=store.id,
+        owner_user_id=user.id,
         address=overrides.get("address", "Tokyo"),
         embeddings=overrides.get("embeddings", [1.0, 0.0, 0.0]),
     )

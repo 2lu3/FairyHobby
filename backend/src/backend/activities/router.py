@@ -5,7 +5,14 @@ from backend.database import get_db_session
 from backend.users.dependencies import get_current_user
 from backend.users.models import User
 from .schemas import ActivityReadResponse, ActivityCreateRequest, ActivityUpdateRequest
-from .service import create, get, update, delete, generate_preference_and_embeddings
+from .service import (
+    create,
+    get,
+    list_by_owner,
+    update,
+    delete,
+    generate_preference_and_embeddings,
+)
 
 router = APIRouter(
     prefix="/activities",
@@ -39,6 +46,24 @@ def create_activity(
     activity = create(activity, current_user, db_session)
     background_tasks.add_task(generate_preference_and_embeddings, activity.id)
     return ActivityReadResponse.from_activity(activity)
+
+
+@router.get(
+    "/me",
+    response_model=list[ActivityReadResponse],
+    description="List activities owned by the current user",
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Unauthorized",
+        },
+    },
+)
+def list_my_activities(
+    current_user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db_session),
+) -> list[ActivityReadResponse]:
+    activities = list_by_owner(current_user.id, db_session)
+    return [ActivityReadResponse.from_activity(activity) for activity in activities]
 
 
 @router.get(

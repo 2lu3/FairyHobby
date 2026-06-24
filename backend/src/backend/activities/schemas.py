@@ -13,8 +13,6 @@ class ActivityCreateRequest(BaseModel):
     duration_minutes: int
     image_urls: list[str]
 
-    owner_store_id: UUID
-
     address: str | None
 
 
@@ -26,7 +24,7 @@ class ActivityReadResponse(BaseModel):
     duration_minutes: int
     image_urls: list[str]
 
-    owner_store_id: UUID
+    owner_user_id: UUID
 
     address: str | None
 
@@ -41,7 +39,7 @@ class ActivityReadResponse(BaseModel):
             price=activity.price,
             duration_minutes=activity.duration_minutes,
             image_urls=[image.image_url for image in activity.images],
-            owner_store_id=activity.owner_store_id,
+            owner_user_id=activity.owner_user_id,
             address=activity.address,
             reviews=[
                 ActivityReviewReadResponse.from_review(review)

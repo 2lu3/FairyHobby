@@ -80,13 +80,13 @@ export default function Fairy({ loaderData }: Route.ComponentProps) {
                         <input type="hidden" name="date" value={date ? formatDate(date) : ""} />
                         <input type="hidden" name="budget" value={budget?.toString() ?? ""} />
                         <div className="flex justify-center gap-4">
-                            <button type="button" className="btn btn-outline" onClick={() => navigate("/")}>やめる</button>
+                            <button type="button" className="btn btn-outline" onClick={() => navigate("/fairy")}>やめる</button>
                             <button type="submit" className="btn btn-primary" disabled={!canAccept}>送信する</button>
                         </div>
                     </Form>
                 ) : (
                     <div className="flex justify-center gap-4">
-                        <button className="btn btn-outline" onClick={() => navigate("/")}>やめる</button>
+                        <button className="btn btn-outline" onClick={() => navigate("/fairy")}>やめる</button>
                         <button className="btn btn-primary" onClick={() => setUserAgreed(true)}>受け取る</button>
                     </div>
                 )}

@@ -28,37 +28,39 @@ type Plan = {
 type Activity = {
     id: string;
     name: string;
+    description: string;
+    price: number;
+    duration_minutes: number;
+    image_urls: string[];
+    address: string | null;
 };
 
-type PlanHistoryView = {
+type ExperiencedActivity = {
     id: string;
-    createdAt: string;
-    plan: Plan;
-    activityTitles: string[];
+    name: string;
+    image_urls: string[];
+    planId: string;
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
-    const res = await backendFetch(request, "/plan-histories");
-    if (!res.ok) {
-        return {
-            histories: [] as PlanHistoryView[],
-            errorMessage: "プラン履歴の取得に失敗しました",
-        };
-    }
-    const planHistories = (await res.json()) as PlanHistory[];
+    // これまで体験した体験 (プラン履歴に含まれる体験を集約)
+    const historyRes = await backendFetch(request, "/plan-histories");
+    const planHistories = historyRes.ok
+        ? ((await historyRes.json()) as PlanHistory[])
+        : [];
 
-    const historyResults = await Promise.all(
+    const experiencedLists = await Promise.all(
         planHistories.map(async (history) => {
             const planRes = await backendFetch(
                 request,
                 `/plans/${history.plan_id}`,
             );
             if (!planRes.ok) {
-                return null;
+                return [] as ExperiencedActivity[];
             }
             const plan = (await planRes.json()) as Plan;
 
-            const activityResults = await Promise.all(
+            const activities = await Promise.all(
                 plan.details.map(async (item) => {
                     const activityRes = await backendFetch(
                         request,
@@ -67,108 +69,156 @@ export async function loader({ request }: Route.LoaderArgs) {
                     if (!activityRes.ok) {
                         return null;
                     }
-                    return (await activityRes.json()) as Activity;
+                    const activity = (await activityRes.json()) as Activity;
+                    return {
+                        id: activity.id,
+                        name: activity.name,
+                        image_urls: activity.image_urls,
+                        planId: plan.id,
+                    } satisfies ExperiencedActivity;
                 }),
             );
-            const activityTitles = activityResults
-                .filter((activity): activity is Activity => activity !== null)
-                .map((activity) => activity.name);
-
-            return {
-                id: history.id,
-                createdAt: history.created_at,
-                plan,
-                activityTitles,
-            } satisfies PlanHistoryView;
+            return activities.filter(
+                (activity): activity is ExperiencedActivity => activity !== null,
+            );
         }),
     );
 
-    const histories = historyResults.filter(
-        (history): history is PlanHistoryView => history !== null,
-    );
-
-    return { histories, errorMessage: null };
-}
-
-function formatDate(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
+    // 体験を重複排除 (同じ体験が複数プランに含まれる場合は最初の1件を残す)
+    const experiencedMap = new Map<string, ExperiencedActivity>();
+    for (const activity of experiencedLists.flat()) {
+        if (!experiencedMap.has(activity.id)) {
+            experiencedMap.set(activity.id, activity);
+        }
     }
-    return date.toLocaleDateString("ja-JP", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
+    const experienced = Array.from(experiencedMap.values());
+
+    // 打った体験 (自分が作成した体験)
+    const ownedRes = await backendFetch(request, "/activities/me");
+    const owned = ownedRes.ok ? ((await ownedRes.json()) as Activity[]) : [];
+
+    return {
+        experienced,
+        owned,
+        historyError: historyRes.ok ? null : "体験履歴の取得に失敗しました",
+        ownedError: ownedRes.ok ? null : "作成した体験の取得に失敗しました",
+    };
 }
 
 export default function MyPage({ loaderData }: Route.ComponentProps) {
-    const { histories, errorMessage } = loaderData;
+    const { experienced, owned, historyError, ownedError } = loaderData;
 
     return (
         <Container className="flex-1">
             <section className="mt-24">
                 <h1 className="text-2xl font-bold">マイページ</h1>
-                <p className="mt-1 text-base-content/70">
-                    これまでに体験したプランの一覧です
-                </p>
 
-                {errorMessage && (
-                    <p className="mt-4 text-error">{errorMessage}</p>
-                )}
-
-                {!errorMessage && histories.length === 0 && (
-                    <p className="mt-8 text-base-content/60">
-                        まだ体験したプランがありません
-                    </p>
-                )}
-
-                <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {histories.map((history) => (
-                        <div
-                            key={history.id}
-                            className="card bg-base-100 shadow-md"
-                        >
-                            <div className="card-body">
-                                <span className="text-sm text-base-content/60">
-                                    {formatDate(history.createdAt)}
-                                </span>
-                                <h2 className="card-title">{history.plan.name}</h2>
-                                {history.plan.description && (
-                                    <p className="text-base-content/80">
-                                        {history.plan.description}
-                                    </p>
+                {/* これまで体験した体験 */}
+                <div className="mt-10">
+                    <h2 className="text-xl font-semibold">
+                        これまで体験した体験
+                    </h2>
+                    {historyError && (
+                        <p className="mt-4 text-error">{historyError}</p>
+                    )}
+                    {!historyError && experienced.length === 0 && (
+                        <p className="mt-4 text-base-content/60">
+                            まだ体験した体験がありません
+                        </p>
+                    )}
+                    <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                        {experienced.map((activity) => (
+                            <div
+                                key={activity.id}
+                                className="card bg-base-100 shadow-md"
+                            >
+                                {activity.image_urls.length > 0 && (
+                                    <figure>
+                                        <img
+                                            src={activity.image_urls[0]}
+                                            alt={activity.name}
+                                            className="h-40 w-full object-cover"
+                                        />
+                                    </figure>
                                 )}
-
-                                {history.activityTitles.length > 0 && (
-                                    <ul className="mt-2 flex flex-col gap-1">
-                                        {history.activityTitles.map(
-                                            (title, index) => (
-                                                <li
-                                                    key={`${history.id}-${index}`}
-                                                    className="flex items-center gap-2"
-                                                >
-                                                    <span className="badge badge-primary badge-sm">
-                                                        {index + 1}
-                                                    </span>
-                                                    <span>{title}</span>
-                                                </li>
-                                            ),
-                                        )}
-                                    </ul>
-                                )}
-
-                                <div className="card-actions mt-4 justify-end">
-                                    <Link
-                                        to={`/review/${history.plan.id}`}
-                                        className="btn btn-primary"
-                                    >
-                                        レビューを投稿する
-                                    </Link>
+                                <div className="card-body">
+                                    <h3 className="card-title">
+                                        {activity.name}
+                                    </h3>
+                                    <div className="card-actions mt-2 justify-end">
+                                        <Link
+                                            to={`/review/${activity.planId}`}
+                                            className="btn btn-primary btn-sm"
+                                        >
+                                            レビューを編集する
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
+                </div>
+
+                {/* シェアした体験 (自分が作成した体験) */}
+                <div className="mt-14">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold">シェアした体験</h2>
+                        <Link to="/activity" className="btn btn-secondary btn-sm">
+                            体験をシェアする
+                        </Link>
+                    </div>
+                    {ownedError && (
+                        <p className="mt-4 text-error">{ownedError}</p>
+                    )}
+                    {!ownedError && owned.length === 0 && (
+                        <p className="mt-4 text-base-content/60">
+                            まだ作成した体験がありません
+                        </p>
+                    )}
+                    <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                        {owned.map((activity) => (
+                            <div
+                                key={activity.id}
+                                className="card bg-base-100 shadow-md"
+                            >
+                                {activity.image_urls.length > 0 && (
+                                    <figure>
+                                        <img
+                                            src={activity.image_urls[0]}
+                                            alt={activity.name}
+                                            className="h-40 w-full object-cover"
+                                        />
+                                    </figure>
+                                )}
+                                <div className="card-body">
+                                    <h3 className="card-title">
+                                        {activity.name}
+                                    </h3>
+                                    {activity.description && (
+                                        <p className="line-clamp-2 text-base-content/80">
+                                            {activity.description}
+                                        </p>
+                                    )}
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        <span className="badge badge-outline">
+                                            ¥{activity.price.toLocaleString()}
+                                        </span>
+                                        <span className="badge badge-outline">
+                                            {activity.duration_minutes}分
+                                        </span>
+                                    </div>
+                                    <div className="card-actions mt-2 justify-end">
+                                        <Link
+                                            to={`/activity/${activity.id}`}
+                                            className="btn btn-primary btn-sm"
+                                        >
+                                            編集する
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </section>
         </Container>

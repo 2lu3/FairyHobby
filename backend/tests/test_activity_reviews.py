@@ -131,7 +131,7 @@ def _seed_activity(
         description=overrides.get("description", "New Activity Description"),
         price=overrides.get("price", 1000),
         duration_minutes=overrides.get("duration_minutes", 60),
-        owner_store_id=store.id,
+        owner_user_id=store.owner_user_id,
         address=overrides.get("address"),
     )
     for image_url in image_urls:
@@ -169,7 +169,7 @@ def _seed_activity_review(session: Session, **overrides) -> ActivityReview:
             ),
             price=overrides.pop("price", 1000),
             duration_minutes=overrides.pop("duration_minutes", 60),
-            owner_store_id=store.id,
+            owner_user_id=store.owner_user_id,
             address=overrides.pop("address", None),
         )
         for image_url in image_urls:

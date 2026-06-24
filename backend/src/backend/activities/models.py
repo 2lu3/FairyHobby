@@ -5,7 +5,7 @@ from sqlalchemy import Column, JSON
 from sqlmodel import Field, Relationship
 
 from backend.database import Base
-from backend.stores.models import Store
+from backend.users.models import User
 
 if TYPE_CHECKING:
     from backend.activity_reviews.models import ActivityReview
@@ -23,8 +23,8 @@ class Activity(Base, table=True):
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
 
-    owner_store_id: UUID = Field(foreign_key="stores.id")
-    owner_store: "Store" = Relationship(back_populates="activities")
+    owner_user_id: UUID = Field(foreign_key="users.id")
+    owner_user: "User" = Relationship(back_populates="activities")
 
     address: str | None
 

@@ -1,12 +1,11 @@
 import logging
 from uuid import UUID
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from backend.activities.models import Activity, ActivityImage
 from backend.activities.schemas import ActivityCreateRequest, ActivityUpdateRequest
 from backend.exceptions import NotFoundError, PermissionDeniedError
-from backend.stores.models import Store
 from backend.users.models import User
 from openai import OpenAI
 from backend.config import settings
@@ -18,19 +17,12 @@ logger = logging.getLogger(__name__)
 def create(
     in_activity: ActivityCreateRequest, current_user: User, db_session: Session
 ) -> Activity:
-    # ログイン中のユーザーがstoreの所有者であるか確認する
-    store = db_session.get(Store, in_activity.owner_store_id)
-    if not store:
-        raise NotFoundError()
-    if store.owner_user_id != current_user.id:
-        raise PermissionDeniedError()
-
     activity = Activity(
         name=in_activity.name,
         description=in_activity.description,
         price=in_activity.price,
         duration_minutes=in_activity.duration_minutes,
-        owner_store_id=in_activity.owner_store_id,
+        owner_user_id=current_user.id,
         address=in_activity.address,
         preference_text=None,
     )
@@ -53,6 +45,14 @@ def get(activity_id: UUID, db_session: Session) -> Activity:
     return activity
 
 
+def list_by_owner(owner_user_id: UUID, db_session: Session) -> list[Activity]:
+    return list(
+        db_session.exec(
+            select(Activity).where(Activity.owner_user_id == owner_user_id)
+        ).all()
+    )
+
+
 def update(
     activity_id: UUID,
     in_activity: ActivityUpdateRequest,
@@ -63,10 +63,7 @@ def update(
     if not activity:
         raise NotFoundError()
 
-    store = db_session.get(Store, activity.owner_store_id)
-    if not store:
-        raise NotFoundError()
-    if store.owner_user_id != current_user.id:
+    if activity.owner_user_id != current_user.id:
         raise PermissionDeniedError()
 
     if in_activity.name is not None:
@@ -78,7 +75,9 @@ def update(
     if in_activity.duration_minutes is not None:
         activity.duration_minutes = in_activity.duration_minutes
     if in_activity.image_urls is not None:
-        activity.image_urls = in_activity.image_urls
+        activity.images.clear()
+        for image_url in in_activity.image_urls:
+            activity.images.append(ActivityImage(image_url=image_url))
     if in_activity.address is not None:
         activity.address = in_activity.address
 
@@ -94,10 +93,7 @@ def delete(activity_id: UUID, current_user: User, db_session: Session) -> Activi
     if not activity:
         raise NotFoundError()
 
-    store = db_session.get(Store, activity.owner_store_id)
-    if not store:
-        raise NotFoundError()
-    if store.owner_user_id != current_user.id:
+    if activity.owner_user_id != current_user.id:
         raise PermissionDeniedError()
 
     db_session.delete(activity)

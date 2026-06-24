@@ -20,7 +20,7 @@ def main():
         return
 
     print(
-        f"{'id':36}  {'name':20}  {'price':>8}  {'duration':>8}  {'owner_store_id':36}"
+        f"{'id':36}  {'name':20}  {'price':>8}  {'duration':>8}  {'owner_user_id':36}"
     )
     print("-" * 120)
     for activity in activities:
@@ -29,7 +29,7 @@ def main():
             f"{activity.name:20}  "
             f"{activity.price:>8}  "
             f"{activity.duration_minutes:>8}  "
-            f"{str(activity.owner_store_id):36}"
+            f"{str(activity.owner_user_id):36}"
         )
 
 

@@ -155,7 +155,7 @@ export default function FairySelection({ loaderData }: Route.ComponentProps) {
                         <button
                             type="button"
                             className="btn btn-outline flex-1"
-                            onClick={() => navigate("/")}
+                            onClick={() => navigate("/fairy")}
                         >
                             辞退する
                         </button>

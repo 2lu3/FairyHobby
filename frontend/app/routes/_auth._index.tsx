@@ -1,40 +1,32 @@
 import { useNavigate } from "react-router";
 
 import Container from "~/component/Container";
-import { backendFetch } from "~/lib/fetcher.server";
 import type { Route } from "./+types/_auth._index";
-import type { FairyReadResponse } from "~/types/fairy";
-import FairyCard from "~/component/FairyCard";
 
 export const meta: Route.MetaFunction = () => [
-    { title: "妖精を選ぶ | 妖精からの招待状" },
+    { title: "妖精からの招待状" },
 ];
 
-export async function loader({ request }: Route.LoaderArgs) {
-    const res = await backendFetch(request, "/fairies");
-    const res_fairies: FairyReadResponse[] = await res.json();
-    const fairies = res_fairies.map((fairy) => {
-        return {
-            ...fairy,
-            description: fairy.prompt.split("。")[0] + "。" + fairy.prompt.split("。")[1],
-        }
-    });
-    return { fairies };
-}
-
-export default function Home(
-    {loaderData}: Route.ComponentProps
-) {
-    const { fairies } = loaderData;
-
+export default function Home() {
     const navigate = useNavigate();
 
     return (
         <Container className="flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                {fairies.map((fairy) => (
-                    <FairyCard key={fairy.id} image_url={fairy.image_url} name={fairy.name} description={fairy.description} onClick={() => { navigate(`/fairy/invitation/${fairy.id}`); }} />
-                ))}
+            <div className="flex flex-col items-center gap-6">
+                <button
+                    type="button"
+                    className="btn btn-primary btn-lg w-full max-w-md"
+                    onClick={() => navigate("/fairy")}
+                >
+                    体験を購入する
+                </button>
+                <button
+                    type="button"
+                    className="btn btn-secondary btn-lg w-full max-w-md"
+                    onClick={() => navigate("/activity")}
+                >
+                    体験をシェアする
+                </button>
             </div>
         </Container>
     );

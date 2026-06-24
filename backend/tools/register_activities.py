@@ -4,7 +4,7 @@ from pathlib import Path
 from uuid import UUID
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from backend.activities.models import Activity, ActivityImage  # noqa: F401
 from backend.activities.schemas import ActivityCreateRequest
@@ -30,10 +30,9 @@ class ToolSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     ADMIN_USER_ID: str
-    ADMIN_STORE_ID: str
 
 
-def load_activities(store_id: UUID) -> list[ActivityCreateRequest]:
+def load_activities() -> list[ActivityCreateRequest]:
     with open(ACTIVITIES_TOML_PATH, "rb") as f:
         data = tomllib.load(f)
 
@@ -46,7 +45,6 @@ def load_activities(store_id: UUID) -> list[ActivityCreateRequest]:
                 price=raw["price"],
                 duration_minutes=raw["duration_minutes"],
                 image_urls=raw.get("image_urls", []),
-                owner_store_id=store_id,
                 address=raw.get("address"),
             )
         )
@@ -56,13 +54,21 @@ def load_activities(store_id: UUID) -> list[ActivityCreateRequest]:
 def main():
     settings = ToolSettings()
 
-    activities = load_activities(settings.ADMIN_STORE_ID)
+    activities = load_activities()
     if not activities:
         logger.warning("No activities found in %s", ACTIVITIES_TOML_PATH)
         return
 
     with Session(engine) as db_session:
         admin_user = get(settings.ADMIN_USER_ID, db_session)
+
+        # 既存の activity を一度すべて削除してから登録し直す
+        existing_activities = db_session.exec(select(Activity)).all()
+        for existing in existing_activities:
+            db_session.delete(existing)
+        if existing_activities:
+            db_session.commit()
+            logger.info("Deleted %d existing activities", len(existing_activities))
 
         created_ids: list[UUID] = []
         for in_activity in activities:
