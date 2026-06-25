@@ -4,7 +4,6 @@ from sqlmodel import Session
 
 from backend.activity_reviews.models import ActivityReview
 from backend.activities.models import Activity, ActivityImage
-from backend.stores.models import Store
 from backend.users.models import User
 
 
@@ -84,10 +83,12 @@ def _seed_user(session: Session, **overrides) -> User:
     return user
 
 
-def _seed_store(session: Session, owner_user: User | None = None, **overrides) -> Store:
-    """テスト用ストアを 1 件作成して返す。"""
+def _seed_activity(
+    session: Session, owner_user: User | None = None, **overrides
+) -> Activity:
+    """テスト用アクティビティを 1 件作成して返す。"""
     if owner_user is None:
-        user = _seed_user(
+        owner_user = _seed_user(
             session,
             firebase_uid=overrides.pop("firebase_uid", "test-firebase-uid"),
             email=overrides.pop("email", "test@example.com"),
@@ -96,42 +97,16 @@ def _seed_store(session: Session, owner_user: User | None = None, **overrides) -
             is_admin=overrides.pop("is_admin", False),
         )
     else:
-        user = owner_user
         for key in ("firebase_uid", "email", "display_name", "icon", "is_admin"):
             overrides.pop(key, None)
-    store = Store(
-        name=overrides.get("name", "New Store"),
-        description=overrides.get("description", "New Store Description"),
-        owner_user_id=user.id,
-    )
-    session.add(store)
-    session.commit()
-    session.refresh(store)
-    return store
 
-
-def _seed_activity(
-    session: Session, owner_user: User | None = None, **overrides
-) -> Activity:
-    """テスト用アクティビティを 1 件作成して返す。"""
-    store = _seed_store(
-        session,
-        owner_user=owner_user,
-        firebase_uid=overrides.pop("firebase_uid", "test-firebase-uid"),
-        email=overrides.pop("email", "test@example.com"),
-        display_name=overrides.pop("display_name", "Test User"),
-        icon=overrides.pop("icon", "🙂"),
-        is_admin=overrides.pop("is_admin", False),
-        name=overrides.pop("store_name", "New Store"),
-        description=overrides.pop("store_description", "New Store Description"),
-    )
     image_urls = overrides.pop("image_urls", ["https://example.com/1.jpg"])
     activity = Activity(
         name=overrides.get("name", "New Activity"),
         description=overrides.get("description", "New Activity Description"),
         price=overrides.get("price", 1000),
         duration_minutes=overrides.get("duration_minutes", 60),
-        owner_user_id=store.owner_user_id,
+        owner_user_id=owner_user.id,
         address=overrides.get("address"),
     )
     for image_url in image_urls:
@@ -160,23 +135,7 @@ def _seed_activity_review(session: Session, **overrides) -> ActivityReview:
 
     activity = overrides.pop("activity", None)
     if activity is None:
-        store = _seed_store(session, owner_user=owner_user)
-        image_urls = overrides.pop("image_urls", ["https://example.com/1.jpg"])
-        activity = Activity(
-            name=overrides.pop("activity_name", "New Activity"),
-            description=overrides.pop(
-                "activity_description", "New Activity Description"
-            ),
-            price=overrides.pop("price", 1000),
-            duration_minutes=overrides.pop("duration_minutes", 60),
-            owner_user_id=store.owner_user_id,
-            address=overrides.pop("address", None),
-        )
-        for image_url in image_urls:
-            activity.images.append(ActivityImage(image_url=image_url))
-        session.add(activity)
-        session.commit()
-        session.refresh(activity)
+        activity = _seed_activity(session, owner_user=owner_user, **overrides)
 
     review = ActivityReview(
         text=overrides.get("text", "Sample review"),

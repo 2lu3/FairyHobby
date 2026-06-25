@@ -9,7 +9,6 @@ from backend.fairies.service import create, delete, generate_embeddings, get_all
 from backend.fairies.models import Fairy  # noqa: F401
 from backend.activities.models import Activity, ActivityImage  # noqa: F401
 from backend.activity_reviews.models import ActivityReview  # noqa: F401
-from backend.stores.models import Store  # noqa: F401
 from backend.users.models import User  # noqa: F401
 from backend.recommendation_job.models import RecommendationJob  # noqa: F401
 from backend.storage import init_storage_client

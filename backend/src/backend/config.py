@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     @property
     def SQLMODEL_DATABASE_URL(self) -> str:
         password = quote_plus(self.POSTGRES_PASSWORD)
-        if self.APP_ENV == "prod":
+        if self.APP_ENV == "prod" and False:
             return f"postgresql://{self.POSTGRES_USER}:{password}@/{self.POSTGRES_DB}?host=/cloudsql/{self.GOOGLE_CLOUD_PROJECT_ID}:{self.GOOGLE_CLOUD_SQL_REGION}:{self.GOOGLE_CLOUD_SQL_INSTANCE_NAME}"
         else:
             return f"postgresql://{self.POSTGRES_USER}:{password}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -65,7 +65,6 @@ class Settings(BaseSettings):
 
     # devの場合のみ設定する
     ADMIN_USER_ID: str | None = None
-    ADMIN_STORE_ID: str | None = None
 
 
 def _apply_emulator_env() -> None:

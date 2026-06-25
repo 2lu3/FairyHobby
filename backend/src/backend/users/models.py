@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from backend.activities.models import Activity
     from backend.activity_reviews.models import ActivityReview
-    from backend.stores.models import Store
 
 
 class User(Base, table=True):
@@ -18,6 +17,5 @@ class User(Base, table=True):
     icon: str
     is_admin: bool
 
-    stores: list["Store"] = Relationship(back_populates="owner_user")
     activities: list["Activity"] = Relationship(back_populates="owner_user")
     activity_reviews: list["ActivityReview"] = Relationship(back_populates="owner_user")

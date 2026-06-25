@@ -6,7 +6,6 @@ from backend.database import engine
 
 # 全モデルをレジストリに登録し、相互参照のリレーションを解決できるようにする
 import backend.users.models  # noqa: F401
-import backend.stores.models  # noqa: F401
 import backend.activities.models  # noqa: F401
 import backend.activity_reviews.models  # noqa: F401
 import backend.plans.models  # noqa: F401

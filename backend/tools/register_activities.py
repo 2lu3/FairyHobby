@@ -15,7 +15,6 @@ from backend.fairies.models import Fairy  # noqa: F401
 from backend.plan_histories.models import PlanHistory  # noqa: F401
 from backend.plans.models import Plan, PlanItem  # noqa: F401
 from backend.recommendation_job.models import RecommendationJob  # noqa: F401
-from backend.stores.models import Store  # noqa: F401
 from backend.users.models import User  # noqa: F401
 from backend.users.service import get
 

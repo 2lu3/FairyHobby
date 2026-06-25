@@ -1,7 +1,7 @@
 """ローカル開発用の管理者ユーザーを作成する。
 
 通常ユーザーは Firebase 認証フロー経由でしか作成されないため、
-空のローカル DB に対して store / activity を登録する前段として
+空のローカル DB に対して activity を登録する前段として
 管理者ユーザーを直接作成するためのツール。
 冪等で、既に存在する場合はその ID を表示する。
 """
@@ -17,7 +17,6 @@ from backend.fairies.models import Fairy  # noqa: F401
 from backend.plan_histories.models import PlanHistory  # noqa: F401
 from backend.plans.models import Plan, PlanItem  # noqa: F401
 from backend.recommendation_job.models import RecommendationJob  # noqa: F401
-from backend.stores.models import Store  # noqa: F401
 from backend.users.models import User
 from backend.users.service import generate_icon
 

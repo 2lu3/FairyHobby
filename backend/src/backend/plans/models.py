@@ -6,10 +6,7 @@ from backend.database import Base
 
 
 class Plan(Base, table=True):
-    """
-    1日分のActivityをPlanItemとして組み合わせる
-    それぞれのActivityのStoreは同じでなくて良い
-    """
+    """1日分のActivityをPlanItemとして組み合わせる。"""
 
     __tablename__ = "plans"
 
