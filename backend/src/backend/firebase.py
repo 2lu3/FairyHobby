@@ -14,7 +14,7 @@ def init_firebase_app() -> None:
     if _firebase_app is not None:
         return
     try:
-        if settings.FIREBASE_AUTH_EMULATOR_HOST:
+        if settings.use_firebase_auth_emulator:
             # ローカル: Firebase Auth Emulator を利用する。
             # firebase-admin は環境変数 FIREBASE_AUTH_EMULATOR_HOST を自動参照するため、
             # 認証情報は不要。projectId のみ明示する。

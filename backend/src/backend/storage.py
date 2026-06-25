@@ -20,7 +20,7 @@ def init_storage_client():
     global _storage_client
     if _storage_client is None:
         try:
-            if settings.STORAGE_EMULATOR_HOST:
+            if settings.use_storage_emulator:
                 # ローカル: fake-gcs-server に匿名認証で接続する
                 _storage_client = storage.Client(
                     project=settings.GOOGLE_CLOUD_PROJECT_ID,
@@ -74,7 +74,7 @@ def get_bucket():
 def get_presigned_url(
     file_path: str, expiration: timedelta = timedelta(hours=1)
 ) -> str:
-    if settings.STORAGE_EMULATOR_HOST:
+    if settings.use_storage_emulator:
         # ローカル: fake-gcs-server は署名なしでオブジェクトを配信できるため、
         # ブラウザから到達可能な公開ダウンロードURLをそのまま返す。
         base = (settings.GCS_PUBLIC_ENDPOINT or settings.STORAGE_EMULATOR_HOST).rstrip(
