@@ -32,6 +32,10 @@ export async function action({ request }: Route.ActionArgs) {
     if (result.response.status === 409) {
         const session = await createSession(token);
 
+        if (session.errorMessage) {
+            return { errorMessage: session.errorMessage };
+        }
+
         if (!session.needs_signup && session.user_id) {
             return redirect("/", {
                 headers: session.setCookie

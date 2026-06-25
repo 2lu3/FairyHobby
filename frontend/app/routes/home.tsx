@@ -1,11 +1,18 @@
 import { useState } from "react";
-import { redirect, useSubmit } from "react-router";
+import { redirect, useNavigation, useSubmit } from "react-router";
 import { signInWithPopup } from "firebase/auth";
 import StartModal from "~/component/home/StartModal";
 import { auth, provider } from "~/lib/firebase.client";
 import Container from "~/component/Container";
-import { createSession } from "~/lib/auth.server";  
+import { createSession } from "~/lib/auth.server";
 import type { Route } from "./+types/home";
+
+function closeStartModal() {
+  const dialog = document.getElementById("start_modal");
+  if (dialog instanceof HTMLDialogElement) {
+    dialog.close();
+  }
+}
 
 export const meta: Route.MetaFunction = () => [
   { title: "妖精からの招待状" },
@@ -19,42 +26,58 @@ export async function action({ request }: Route.ActionArgs) {
     return { errorMessage: "Invalid token" };
   }
   
-  const { user_id, needs_signup, setCookie } = await createSession(token);
-  if (needs_signup) {
+  const session = await createSession(token);
+  if (session.errorMessage) {
+    return { errorMessage: session.errorMessage };
+  }
+  if (session.needs_signup) {
     return redirect("/signin");
   }
-  if (user_id) {
-    return redirect("/", 
-      { headers: setCookie ? { "Set-Cookie": setCookie } : undefined },
-    );
+  if (session.user_id) {
+    if (!session.setCookie) {
+      return { errorMessage: "セッションの保存に失敗しました" };
+    }
+    return redirect("/", {
+      headers: { "Set-Cookie": session.setCookie },
+    });
   }
-  return { errorMessage: "Failed to create session" };
+  return { errorMessage: "セッションの作成に失敗しました" };
 }
 
-export default function Login() {
+export default function Login({ actionData }: Route.ComponentProps) {
   const submit = useSubmit();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  const navigation = useNavigation();
+  const [clientErrorMessage, setClientErrorMessage] = useState<string | null>(null);
+  const isSubmitting = navigation.state === "submitting";
+  const errorMessage = clientErrorMessage ?? actionData?.errorMessage ?? null;
 
   const handleLoginSubmit = async () => {
+    setClientErrorMessage(null);
+
     try {
       await signInWithPopup(auth, provider);
     } catch {
-      setErrorMessage("ログインが中断されました");
+      setClientErrorMessage("ログインが中断されました");
       return;
     }
 
     const token = await auth.currentUser?.getIdToken();
     if (!token) {
-      setErrorMessage("ログインに失敗しました");
+      setClientErrorMessage("ログインに失敗しました");
       return;
     }
 
+    closeStartModal();
     submit({ token }, { method: "post" });
-  }
+  };
 
   return (
     <div className="min-h-screen">
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+          <span className="loading loading-spinner loading-lg" />
+        </div>
+      )}
       <Container>
         <section className="mt-24">
           {errorMessage && <div className="alert alert-error">{errorMessage}</div>}

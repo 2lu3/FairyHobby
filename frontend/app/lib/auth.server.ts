@@ -37,17 +37,46 @@ export async function registerUser(params: {
 }
 
 export async function createSession(token: string) {
-  const response = await fetch(`${env.BACKEND_URL}/auth/session`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${env.BACKEND_URL}/auth/session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    return {
+      user_id: null,
+      needs_signup: false,
+      setCookie: null,
+      errorMessage: "バックエンドに接続できませんでした",
+    };
+  }
 
   const data = await response.json().catch(() => null);
-  const needs_signup = data?.needs_signup as boolean;
-  const user_id = data?.id as string | null;
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      return {
+        user_id: null,
+        needs_signup: false,
+        setCookie: null,
+        errorMessage: "Google認証に失敗しました",
+      };
+    }
+
+    return {
+      user_id: null,
+      needs_signup: false,
+      setCookie: null,
+      errorMessage: "セッションの作成に失敗しました",
+    };
+  }
+
+  const needs_signup = Boolean(data?.needs_signup);
+  const user_id = (data?.id as string | null) ?? null;
 
   return { user_id, needs_signup, setCookie: getSetCookieValue(response) };
 }
