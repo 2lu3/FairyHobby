@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { redirect, useFetcher } from "react-router";
 import { signInWithPopup } from "firebase/auth";
 import StartModal from "~/component/home/StartModal";
 import { auth, provider } from "~/lib/firebase.client";
 import Container from "~/component/Container";
+import { createSession, redirectWithSession } from "~/lib/auth.server";
 import type { Route } from "./+types/home";
 
 function closeStartModal() {
@@ -17,37 +18,68 @@ export const meta: Route.MetaFunction = () => [
   { title: "妖精からの招待状" },
 ];
 
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const token = getFormString(formData, "token");
+
+  if (!token) {
+    return { errorMessage: "認証トークンが必要です" };
+  }
+
+  const session = await createSession(token);
+  if (session.errorMessage) {
+    return { errorMessage: session.errorMessage };
+  }
+
+  if (session.needs_signup) {
+    return redirect("/signin");
+  }
+
+  if (session.user_id) {
+    return redirectWithSession(session.setCookie);
+  }
+
+  return { errorMessage: "セッションの作成に失敗しました" };
+}
+
 export default function Login() {
-  const navigate = useNavigate();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const fetcher = useFetcher<{ errorMessage?: string }>();
+  const [localErrorMessage, setLocalErrorMessage] = useState<string | null>(null);
+  const [isPopupSigningIn, setIsPopupSigningIn] = useState(false);
+
+  const isSubmitting =
+    isPopupSigningIn ||
+    fetcher.state === "submitting" ||
+    fetcher.state === "loading";
+  const errorMessage = fetcher.data?.errorMessage ?? localErrorMessage;
 
   const handleLoginSubmit = async () => {
-    setErrorMessage(null);
-    setIsSigningIn(true);
+    setLocalErrorMessage(null);
+    setIsPopupSigningIn(true);
 
     try {
       await signInWithPopup(auth, provider);
     } catch {
-      setErrorMessage("ログインが中断されました");
-      setIsSigningIn(false);
+      setLocalErrorMessage("ログインが中断されました");
+      setIsPopupSigningIn(false);
       return;
     }
 
     const token = await auth.currentUser?.getIdToken();
     if (!token) {
-      setErrorMessage("ログインに失敗しました");
-      setIsSigningIn(false);
+      setLocalErrorMessage("ログインに失敗しました");
+      setIsPopupSigningIn(false);
       return;
     }
 
     closeStartModal();
-    navigate("/signin");
+    fetcher.submit({ token }, { method: "post" });
+    setIsPopupSigningIn(false);
   };
 
   return (
     <div className="min-h-screen">
-      {isSigningIn && (
+      {isSubmitting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
           <span className="loading loading-spinner loading-lg" />
         </div>
@@ -68,4 +100,14 @@ export default function Login() {
       </Container>
     </div>
   );
+}
+
+function getFormString(formData: FormData, name: string): string | null {
+  const value = formData.get(name);
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }

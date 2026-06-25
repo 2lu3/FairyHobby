@@ -1,3 +1,4 @@
+import { redirect } from "react-router";
 import { env } from "~/lib/env.server";
 
 function getSetCookieValue(response: Response): string | null {
@@ -101,4 +102,17 @@ export async function createSession(token: string) {
   const user_id = (data?.id as string | null) ?? null;
 
   return { user_id, needs_signup, setCookie: getSetCookieValue(response) };
+}
+
+export function redirectWithSession(
+  setCookie: string | null,
+  to = "/",
+) {
+  if (!setCookie) {
+    return { errorMessage: "セッションの保存に失敗しました" };
+  }
+
+  return redirect(to, {
+    headers: { "Set-Cookie": setCookie },
+  });
 }
