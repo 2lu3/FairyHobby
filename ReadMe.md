@@ -3,30 +3,28 @@
 
 ## ローカル開発 (docker compose)
 
-Google Cloud (Cloud SQL / Cloud Storage / Firebase Auth) をすべてローカルのコンテナで代替して起動できます。
+本番の Google Cloud (Cloud SQL / Cloud Storage / Firebase Auth) に接続して起動します。
 
 ```bash
-# 1. 秘密情報を設定 (初回のみ)
-cp .env.example .env   # SESSION_SECRET_KEY / OPENAI_API_KEY を記入
+# 1. 接続情報を設定 (初回のみ)
+#    - backend/.env に Cloud SQL / GCS / OpenAI 等の設定
+#    - backend/ServiceAccountKey.json を配置
+#    - cp frontend/.env.example frontend/.env して Firebase 設定を記入
 
 # 2. 起動
 docker compose up -d --build
 
-# 3. 停止 (データを消す場合は -v も付ける)
+# 3. 停止
 docker compose down
 ```
 
-| サービス | URL | 代替対象 |
-| --- | --- | --- |
-| frontend | http://localhost:5173 | - |
-| backend (API/docs) | http://localhost:8080/docs | - |
-| PostgreSQL | localhost:5432 | Cloud SQL |
-| fake-gcs-server | http://localhost:4443 | Cloud Storage |
-| Firebase Auth Emulator | http://localhost:9099 | Firebase Authentication |
-| Emulator UI | http://localhost:4000 | - |
+| サービス | URL |
+| --- | --- |
+| frontend | http://localhost:5173 |
+| backend (API/docs) | http://localhost:8080/docs |
 
 - DB マイグレーション (`alembic upgrade head`) は backend 起動時に自動実行されます。
-- 認証は Firebase Auth Emulator を使うため、ログインは画面のエミュレータ用ダイアログで適当なアカウントを作成すれば通ります。
+- 認証は本番の Firebase Auth を使うため、Google アカウントでログインします。
 
 ## 解決したい課題
 
