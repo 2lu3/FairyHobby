@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { redirect, useNavigation, useSubmit } from "react-router";
+import { useNavigate } from "react-router";
 import { signInWithPopup } from "firebase/auth";
 import StartModal from "~/component/home/StartModal";
 import { auth, provider } from "~/lib/firebase.client";
 import Container from "~/component/Container";
-import { createSession } from "~/lib/auth.server";
 import type { Route } from "./+types/home";
 
 function closeStartModal() {
@@ -18,62 +17,37 @@ export const meta: Route.MetaFunction = () => [
   { title: "妖精からの招待状" },
 ];
 
-export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const token = formData.get("token");
-
-  if (typeof token !== "string") {
-    return { errorMessage: "Invalid token" };
-  }
-  
-  const session = await createSession(token);
-  if (session.errorMessage) {
-    return { errorMessage: session.errorMessage };
-  }
-  if (session.needs_signup) {
-    return redirect("/signin");
-  }
-  if (session.user_id) {
-    if (!session.setCookie) {
-      return { errorMessage: "セッションの保存に失敗しました" };
-    }
-    return redirect("/", {
-      headers: { "Set-Cookie": session.setCookie },
-    });
-  }
-  return { errorMessage: "セッションの作成に失敗しました" };
-}
-
-export default function Login({ actionData }: Route.ComponentProps) {
-  const submit = useSubmit();
-  const navigation = useNavigation();
-  const [clientErrorMessage, setClientErrorMessage] = useState<string | null>(null);
-  const isSubmitting = navigation.state === "submitting";
-  const errorMessage = clientErrorMessage ?? actionData?.errorMessage ?? null;
+export default function Login() {
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const handleLoginSubmit = async () => {
-    setClientErrorMessage(null);
+    setErrorMessage(null);
+    setIsSigningIn(true);
 
     try {
       await signInWithPopup(auth, provider);
     } catch {
-      setClientErrorMessage("ログインが中断されました");
+      setErrorMessage("ログインが中断されました");
+      setIsSigningIn(false);
       return;
     }
 
     const token = await auth.currentUser?.getIdToken();
     if (!token) {
-      setClientErrorMessage("ログインに失敗しました");
+      setErrorMessage("ログインに失敗しました");
+      setIsSigningIn(false);
       return;
     }
 
     closeStartModal();
-    submit({ token }, { method: "post" });
+    navigate("/signin");
   };
 
   return (
     <div className="min-h-screen">
-      {isSubmitting && (
+      {isSigningIn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
           <span className="loading loading-spinner loading-lg" />
         </div>

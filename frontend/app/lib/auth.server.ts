@@ -67,11 +67,33 @@ export async function createSession(token: string) {
       };
     }
 
+    if (response.status === 500) {
+      return {
+        user_id: null,
+        needs_signup: false,
+        setCookie: null,
+        errorMessage:
+          "Backendで問題が発生しました",
+      };
+    }
+
+    const detail =
+      typeof data?.detail === "string" ? data.detail : `HTTP ${response.status}`;
+
     return {
       user_id: null,
       needs_signup: false,
       setCookie: null,
-      errorMessage: "セッションの作成に失敗しました",
+      errorMessage: `セッションの作成に失敗しました (${detail})`,
+    };
+  }
+
+  if (!data || typeof data.needs_signup !== "boolean") {
+    return {
+      user_id: null,
+      needs_signup: false,
+      setCookie: null,
+      errorMessage: "バックエンドからの応答が不正です",
     };
   }
 
